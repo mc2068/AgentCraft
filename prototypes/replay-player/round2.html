@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay player round 2</title>
+<!-- PROTOTYPE, throwaway. Round 2 of "what should the Session replay player and guide look like?"
+     A+ = Field Notebook developed further; D = Over the shoulder (app + live folder); E = Storyboard.
+     Switch with the floating bar, the left/right arrow keys, or #notebook / #over-the-shoulder / #storyboard. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;600;700&family=Lexend:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning, calm and exact
+   IDEA A+: a naturalist's field notebook with figures and tabs. D: watching over someone's shoulder, app on the left, the folder changing on the right. E: a storyboard of panels
+   PICTURE the replay itself; in D the folder of files that visibly moves; in A+ small specimen figures of what Claude found and did
+   COLOUR A+: green-tinted paper, pine ink, highlighter yellow, survey blue, red pencil. D: white, ink, slate, file-type colours. E: white panels, ink outlines, sun yellow, cobalt, pink
+   TYPE A+: Newsreader + Plex Mono. D: Hanken Grotesk. E: Lexend
+   LAYOUT A+: chapter tabs, transcript + margin, recap at the end. D: two panes side by side, stacked on phones. E: panel grid 3/2/1 columns */
+:root{color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:#fff;color:#1f2a24;font:16px/1.55 system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid #3d6fb6;outline-offset:2px}
+button:disabled{cursor:default}
+.proto{font:500 13px/1.3 'IBM Plex Mono',monospace;background:#1f2a24;color:#fff;padding:4px 8px;border-radius:4px;white-space:nowrap}
+.v{display:none}
+.v.on{display:block}
+svg.sprite{shape-rendering:crispEdges;display:block;flex:none}
+.sprite .eye{animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes inn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.bob{animation:bob 1.6s ease-in-out infinite}
+.new{animation:inn .35s ease-out}
+@media (prefers-reduced-motion:reduce){.bob,.sprite .eye,.new{animation:none}*{transition:none!important}}
+.bubble{background:#fff;border:1.5px solid #1f2a24;border-radius:14px;padding:12px 14px;position:relative;box-shadow:3px 3px 0 #1f2a24;font-size:15px;color:#1f2a24}
+.bubble .x{position:absolute;top:4px;right:6px;border:0;background:none;font-size:18px;width:32px;height:32px}
+.bubble .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+.dots{display:flex;gap:5px}
+.dots i{width:7px;height:7px;border-radius:9px;background:#c9d2cc}
+.dots i.on{width:20px;background:#2e6b4f}
+.nextb{border:0;border-radius:8px;padding:8px 14px;background:#2e6b4f;color:#fff!important;font-weight:600;min-height:40px}
+.choice{flex:none;display:block;width:100%;text-align:left;border:1.5px solid #9aa79f;background:#fff;border-radius:6px;padding:10px 12px;margin:8px 0;min-height:44px;font-size:16px}
+.choice:hover:not(:disabled){border-color:#1f2a24}
+.choice.pick{border-color:#1f2a24;background:#fffbe3}
+.choice.real{border-color:#2e6b4f;background:#e8f2ec}
+.fb{font-size:14px;opacity:.8;display:block;margin-top:2px}
+.muteb{border:1px solid currentColor;background:transparent;border-radius:8px;min-height:40px;padding:0 12px;font-weight:600}
+.ctl{border:1px solid #9aa79f;background:#fff;border-radius:8px;min-width:44px;min-height:40px;font-weight:600}
+.ctl:disabled{opacity:.35}
+/* ================= A+ Field Notebook, developed ================= */
+#A{background:#f4f6f2;font-family:Newsreader,Georgia,serif;min-height:100vh;background-image:linear-gradient(#e3e9e3 1px,transparent 1px);background-size:100% 30px}
+#A .wrap{max-width:1240px;margin:auto;padding:0 max(4vw,16px)}
+#A header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;padding:28px 0 10px;border-bottom:2px solid #1f2a24}
+#A .kick{font:500 13px 'IBM Plex Mono',monospace;color:#2e6b4f}
+#A h1{font-size:clamp(30px,4.4vw,46px);line-height:1.05;letter-spacing:-.02em;margin:4px 0 0;font-weight:600;text-wrap:balance}
+#A .cap0{display:flex;flex-wrap:wrap;gap:10px 18px;margin:12px 0 0;font-size:17px;color:#3c4a42}
+#A .cap0 b{font-weight:600;color:#1f2a24}
+#A .tabs{display:flex;gap:4px;margin:18px 0 6px;overflow-x:auto}
+#A .tab{border:1px solid #9aa79f;border-bottom:0;border-radius:8px 8px 0 0;background:#e9eee9;padding:6px 14px;font:600 15px Newsreader,serif;min-height:40px;white-space:nowrap}
+#A .tab.here{background:#fff;border-color:#1f2a24;box-shadow:inset 0 3px 0 #2e6b4f}
+#A .tab.done{background:#dcebe1}
+#A .page{background:#fff;border:1px solid #1f2a24;border-radius:0 6px 6px 6px;padding:clamp(16px,3vw,32px);box-shadow:6px 6px 0 #d6ddd7}
+#A .rowA{display:grid;grid-template-columns:64px minmax(0,1fr) 290px;gap:0 22px;align-items:start;padding:12px 0;border-bottom:1px dashed #d6ddd7}
+#A .fig{font:500 13px 'IBM Plex Mono',monospace;color:#7b887f;padding-top:4px;white-space:nowrap}
+#A .blk{transition:opacity .3s}
+#A .rowA.cur .fig{color:#c23b3b}
+#A .cap{font:500 13px/1.3 'IBM Plex Mono',monospace;color:#5b6b62;margin-bottom:4px;font-variant:small-caps}
+#A .blk p{margin:0;font-size:19px;line-height:1.45}
+#A .h p{background:linear-gradient(transparent 58%,#f4dc5a 58%);display:inline}
+#A .note{font-style:italic;font-size:16px;line-height:1.4;padding-left:12px;border-left:3px solid}
+#A .note.h{border-color:#e0c23a}
+#A .note.c{border-color:#3d6fb6}
+#A .note b{font-style:normal;font-weight:600}
+#A .spec{margin-top:10px;border:1px solid #d6ddd7;border-radius:4px;padding:10px 12px;background:#fafbf9}
+#A .spec .r{display:grid;grid-template-columns:92px minmax(0,1fr) 40px;gap:8px;align-items:center;font:13px 'IBM Plex Mono',monospace;margin:4px 0}
+#A .spec .b{height:10px;background:#2e6b4f;border-radius:2px}
+#A .spec .n{text-align:right}
+#A .spec .lg{font:italic 14px Newsreader,serif;color:#5b6b62;margin-top:6px}
+#A .prompt{margin-top:10px;border:1.5px solid #1f2a24;border-radius:8px;padding:12px;font-family:'Hanken Grotesk',sans-serif;background:#fff}
+#A .prompt .t{font-weight:700;font-size:15px}
+#A .prompt .bs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#A .prompt span{border:1px solid #9aa79f;border-radius:6px;padding:6px 10px;font-size:14px}
+#A .gA{display:flex;gap:10px;align-items:flex-end;margin-top:12px}
+#A .gA .bubble{flex:1}
+#A .pause{margin:6px 0 6px 74px;border:2px dashed #c23b3b;border-radius:6px;padding:16px 18px;background:#fffdf6}
+#A .pause h3{margin:0 0 4px;font-size:22px;line-height:1.2}
+#A .pause .hint{font-style:italic;color:#5b6b62;margin:0 0 6px}
+#A .cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+#A .cmp div{border-radius:6px;padding:10px 12px;font-size:16px}
+#A .cmp .y{background:#fffbe3;border:1px solid #e0c23a}
+#A .cmp .r{background:#e8f2ec;border:1px solid #2e6b4f}
+#A .cmp b{display:block;font:600 13px 'IBM Plex Mono',monospace;font-variant:small-caps}
+#A .recap{margin-top:22px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px}
+#A .recap section{border:1px solid #1f2a24;border-radius:6px;padding:18px;background:#fff}
+#A .recap h2{font-size:24px;margin:0 0 8px;line-height:1.15}
+#A .capb{background:#2e6b4f;color:#fff;border-radius:6px;padding:12px 14px;font-size:18px;margin-bottom:10px}
+#A .recap ol{margin:0;padding-left:20px}
+#A .recap li{margin:4px 0}
+#A pre{font:14px/1.5 'IBM Plex Mono',monospace;background:#f4f6f2;border:1px solid #d6ddd7;border-radius:4px;padding:12px;white-space:pre-wrap;margin:8px 0}
+#A .copy{border:0;background:#1f2a24;color:#fff;border-radius:8px;padding:8px 14px;min-height:40px;font-weight:600}
+.scrub{position:fixed;left:0;right:0;bottom:64px;background:#fff;border-top:1px solid #d6ddd7;padding:6px max(4vw,16px);display:none;align-items:center;gap:10px;z-index:5}
+#A.on~.scrub{display:flex}
+.scrub .bar{flex:1;display:grid;gap:3px;align-items:end}
+.scrub .tk{height:12px;border-radius:2px;border:0;padding:0;opacity:.4}
+.scrub .tk.done{opacity:1}
+.scrub .tk.here{height:24px;opacity:1}
+.scrub .chs{display:grid;gap:3px;font:12px/1.2 'IBM Plex Mono',monospace;color:#5b6b62;margin-top:3px}
+@media(max-width:900px){#A .rowA{grid-template-columns:56px minmax(0,1fr)}#A .rowA .marg{grid-column:2;margin-top:8px}#A .pause{margin-left:0}#A .recap{grid-template-columns:minmax(0,1fr)}#A header{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.scrub .chs,#Atime{display:none}#A .cmp{grid-template-columns:minmax(0,1fr)}}
+/* ================= D Over the shoulder ================= */
+#D{background:#eef0f3;font-family:'Hanken Grotesk',system-ui,sans-serif;color:#151a22;min-height:100vh}
+#D header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:18px max(3vw,16px) 10px;max-width:1320px;margin:auto}
+#D h1{font-size:clamp(22px,2.6vw,30px);margin:0;letter-spacing:-.01em;line-height:1.1}
+#D .sub{color:#596273;margin:2px 0 0}
+#D .panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:0 max(3vw,16px);max-width:1320px;margin:auto}
+#D .win{background:#fff;border-radius:12px;box-shadow:0 1px 0 #d5d9e0,0 8px 24px rgba(21,26,34,.08);overflow:hidden;display:flex;flex-direction:column;height:min(640px,calc(100vh - 230px));min-height:460px}
+#D .bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid #e6e9ee;font-size:14px;color:#596273;font-weight:600}
+#D .bar i{width:11px;height:11px;border-radius:50%;background:#d5d9e0}
+#D .bar span{margin-left:8px}
+#D .chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+#D .msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:16px;line-height:1.45;position:relative}
+#D .msg.h{align-self:flex-end;background:#151a22;color:#fff;border-bottom-right-radius:4px}
+#D .msg.c{align-self:flex-start;background:#f1f3f6;border-bottom-left-radius:4px}
+#D .tool{align-self:flex-start;font:13px 'IBM Plex Mono',monospace;color:#596273;border:1px solid #e6e9ee;border-radius:8px;padding:6px 10px}
+#D .tool b{color:#151a22}
+#D .permc{align-self:stretch;border:2px solid #151a22;border-radius:12px;padding:14px}
+#D .permc .t{font-weight:700}
+#D .permc .bs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#D .pb{border:1.5px solid #151a22;background:#fff;border-radius:8px;padding:8px 12px;min-height:44px;font-weight:600}
+#D .pb.alt{background:#151a22;color:#fff}
+#D .pin{font-family:'Hanken Grotesk',sans-serif;display:block;margin-top:6px;font-size:14px;line-height:1.35;padding:6px 10px;border-radius:8px;background:#fff7c2;color:#151a22;border:1px solid #e8d45a}
+#D .pin.c{background:#e3ecfb;border-color:#9bb7ea}
+#D .reveal{align-self:stretch;background:#fff7c2;border:1px solid #e8d45a;border-radius:12px;padding:12px 14px;font-size:15px}
+#D .compose{border-top:1px solid #e6e9ee;padding:10px 14px;color:#8b93a3;font-size:15px}
+#D .fold{flex:1;overflow-y:auto;padding:16px}
+#D .loose{display:flex;flex-wrap:wrap;gap:6px;padding:12px;border:1.5px dashed #c5cbd5;border-radius:10px;min-height:70px}
+#D .lbl{font-weight:700;font-size:14px;margin:0 0 6px;display:flex;justify-content:space-between}
+#D .chip{width:28px;height:34px;border-radius:3px 9px 3px 3px;background:#c5cbd5;position:relative;transition:background .4s,transform .4s}
+#D .chip.tax{outline:3px solid #e0342f;outline-offset:1px}
+#D .dirs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+#D .dir{border:1.5px solid #c5cbd5;border-radius:4px 12px 12px 12px;padding:10px;min-height:96px;background:#fafbfc;transition:opacity .3s}
+#D .dir.ghost{border-style:dashed;opacity:.6}
+#D .dir .chips{display:flex;flex-wrap:wrap;gap:4px}
+#D .dir .chip{width:18px;height:22px}
+#D .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:#596273;margin-top:12px}
+#D .legend i{display:inline-block;width:10px;height:12px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+#D .foot{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:14px max(3vw,16px);max-width:1320px;margin:auto}
+#D .foot .bubble{flex:1;max-width:560px}
+#D .ctls{display:flex;gap:8px;margin-left:auto;align-items:center}
+@media(max-width:820px){#D .panes{grid-template-columns:minmax(0,1fr)}#D .win{height:auto;min-height:0}#D .chat{max-height:460px}}
+/* ================= E Storyboard ================= */
+#E{background:#fff;font-family:Lexend,system-ui,sans-serif;color:#111;min-height:100vh}
+#E header{max-width:1240px;margin:auto;padding:24px max(4vw,16px) 8px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end}
+#E h1{font-size:clamp(28px,4vw,44px);font-weight:800;margin:0;letter-spacing:-.02em;line-height:1.05}
+#E .sub{margin:4px 0 0;color:#444}
+#E .grid{max-width:1240px;margin:auto;padding:12px max(4vw,16px) 24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+#E .pan{border:3px solid #111;border-radius:6px;background:#fff;display:flex;flex-direction:column;min-height:250px;position:relative;cursor:pointer;text-align:left;padding:0}
+#E .pan.cur{box-shadow:8px 8px 0 #2747d6}
+#E .pan.dim{opacity:.35}
+#E .phead{display:flex;justify-content:space-between;border-bottom:3px solid #111;padding:6px 10px;font-weight:800;font-size:13px;background:#ffd23d}
+#E .pan.k-h .phead{background:#ffd23d}
+#E .pan.k-c .phead,#E .pan.k-tool .phead{background:#b9c8ff}
+#E .pan.k-perm .phead{background:#ff8fb8}
+#E .scene{flex:1;display:flex;align-items:flex-end;gap:10px;padding:12px;background:linear-gradient(#f3f5ff 70%,#e2e7ff 70%)}
+#E .say{flex:1;background:#fff;border:2.5px solid #111;border-radius:16px;padding:10px 12px;font-size:15px;line-height:1.35;position:relative;align-self:flex-start}
+#E .who{width:44px;height:44px;border:2.5px solid #111;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;background:#fff}
+#E .who.c{background:#2747d6;color:#fff;border-radius:50%}
+#E .who.h{background:#ffd23d}
+#E .narr{border-top:3px solid #111;background:#fff7c2;padding:8px 10px;font-size:14px;display:flex;gap:8px;align-items:center}
+#E .pq{flex:1;padding:12px;display:flex;flex-direction:column}
+#E .pq h3{margin:0 0 4px;font-size:18px;line-height:1.25}
+#E .choice{border:2.5px solid #111;border-radius:10px;font-size:15px;margin:6px 0}
+#E .choice.real{background:#d9f5e3}
+#E .blank{flex:1;display:grid;place-items:center;font-size:64px;font-weight:800;color:#d6dcf5;min-height:140px}
+#E .ectl{max-width:1240px;margin:auto;padding:0 max(4vw,16px);display:flex;gap:8px;align-items:center}
+#E .eg{display:flex;align-items:flex-end;gap:10px;flex:1}
+#E .eg .bubble{max-width:520px;flex:1;border-color:#111;box-shadow:3px 3px 0 #111}
+@media(max-width:900px){#E .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#E .grid{grid-template-columns:minmax(0,1fr)}#E .ectl{flex-wrap:wrap}}
+/* switcher */
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;width:40px;height:40px;font-size:18px}
+.sw span{padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<section class="v" id="A" aria-label="Variant A plus, Field Notebook developed">
+ <div class="wrap">
+  <header>
+   <div><div class="kick">Foundations track · Goal 1, Tidy a messy folder · Lesson 2 of 3</div><h1>Your first task: sort and rename files</h1>
+    <div class="cap0"><span><b>You’ll be able to</b> hand Claude a task on your files and safely undo it.</span><span>About 12 minutes</span><span>Verified with Claude Code 2.1.330 · 20 Nov 2026</span></div></div>
+   <div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div>
+  </header>
+  <nav class="tabs" id="Atabs" aria-label="Chapters"></nav>
+  <div class="page"><div id="Aout"></div></div>
+  <div id="Arecap"></div>
+  <div style="height:150px"></div>
+ </div>
+</section>
+<div class="scrub" aria-label="Replay scrubber">
+ <button class="ctl" data-prev aria-label="Previous step">‹</button>
+ <button class="ctl" data-play aria-label="Play or pause">▶</button>
+ <button class="ctl" data-next aria-label="Next step">›</button>
+ <div style="flex:1"><div class="bar" id="Abar"></div><div class="chs" id="Achs"></div></div>
+ <span id="Atime" style="font:13px 'IBM Plex Mono',monospace;white-space:nowrap"></span>
+</div>
+
+<section class="v" id="D" aria-label="Variant D, Over the shoulder">
+ <header><div><h1>Your first task: sort and rename files</h1><p class="sub">Watch over the shoulder: the conversation on the left, the folder changing on the right.</p></div>
+  <div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div></header>
+ <div class="panes">
+  <div class="win" aria-label="Claude Code desktop app, recreated"><div class="bar"><i></i><i></i><i></i><span>Claude Code · Downloads</span></div><div class="chat" id="Dchat"></div><div class="compose">Reply to Claude…</div></div>
+  <div class="win" aria-label="The Downloads folder"><div class="bar"><i></i><i></i><i></i><span>Downloads folder</span><span id="Dcount" style="margin-left:auto"></span></div><div class="fold" id="Dfold"></div></div>
+ </div>
+ <div class="foot"><div id="Dguide" style="display:flex;gap:10px;align-items:flex-end;flex:1"></div>
+  <div class="ctls"><button class="ctl" data-prev aria-label="Previous step">‹</button><button class="ctl" data-play aria-label="Play or pause">▶</button><button class="ctl" data-next aria-label="Next step">›</button><span id="Dtime" style="font-weight:600;white-space:nowrap"></span></div></div>
+</section>
+
+<section class="v" id="E" aria-label="Variant E, Storyboard">
+ <header><div><h1>Your first task: sort and rename files</h1><p class="sub">The session as a storyboard. Click any panel to jump to it.</p></div>
+  <div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div></header>
+ <div class="ectl"><div class="eg" id="Eguide"></div><button class="ctl" data-prev aria-label="Previous panel">‹</button><button class="ctl" data-next aria-label="Next panel">›</button></div>
+ <div class="grid" id="Egrid"></div>
+</section>
+
+<nav class="sw" aria-label="Prototype variant switcher"><button id="swp" aria-label="Previous variant">←</button><span id="swl"></span><button id="swn" aria-label="Next variant">→</button></nav>
+
+<script>
+{
+const E=[
+{k:'h',t:'0:00',ch:'Ask',text:'My Downloads folder is a mess. Can you sort it into folders by type?',note:{w:'h',t:'One clear Goal in one sentence. No technical words needed.'}},
+{k:'tool',t:'0:04',ch:'Look',tool:'List files',text:'Looked at 214 files in Downloads.',spec:'count',note:{w:'c',t:'Claude looks before it acts. It reads the folder but changes nothing yet.'}},
+{k:'c',t:'0:09',ch:'Plan',text:'My plan: make four folders (Documents, Photos, Installers, Other) and rename screenshots by date. Shall I go ahead?',note:{w:'c',t:'A plan in plain words, then a question. Good agents ask before big changes.'}},
+{k:'h',t:'0:21',ch:'Plan',text:'Leave anything with “tax” in the name exactly where it is.',note:{w:'h',t:'Protect what matters before anything moves.'}},
+{k:'perm',t:'0:26',ch:'Check',text:'Claude wants to move 198 files into 4 new folders.',opts:['Allow once','Allow always','Deny'],pause:true},
+{k:'h',t:'0:30',ch:'Check',text:'Show me the list of files you’ll move first.',note:{w:'h',t:'Asking to see the list costs ten seconds and catches mistakes.'}},
+{k:'c',t:'0:34',ch:'Check',text:'Here’s the list. I found 3 files with “tax” in the name in it and took them out: tax-2025.pdf, tax-receipt-march.pdf, TAX_notes.docx.',note:{w:'c',t:'Checking caught 3 files that would have moved. This is why you look first.'}},
+{k:'h',t:'0:41',ch:'Act',text:'Looks right. Go ahead.'},
+{k:'tool',t:'0:44',ch:'Act',tool:'Move files',text:'Moved 195 files into 4 folders. Nothing was deleted.',spec:'moved',note:{w:'c',t:'Claude says what it did and what it did not do.'}},
+{k:'h',t:'1:02',ch:'Undo',text:'Actually, undo the Photos part. I want photos sorted by year.',note:{w:'h',t:'Changing your mind is normal. Rewind puts files back.'}},
+{k:'tool',t:'1:05',ch:'Undo',tool:'Rewind',text:'Put 88 photos back where they were.'}
+];
+const PAUSE=4;
+const Q={q:'Claude asks to move 198 files. What would you do?',ch:[
+ {t:'Allow always. It seems to know what it’s doing.',fb:'Fast, but Claude would never ask again before moving files.'},
+ {t:'Ask to see the list of files first.',fb:'This is what the human did. Watch what it caught.',real:1},
+ {t:'Deny, and sort them by hand.',fb:'Safe, but you lose the help you came for.'}]};
+const G={0:'Hi, I’m Wren, your guide. Watch how the request is phrased: one clear Goal.',1:'Claude looks first. Notice it doesn’t change anything yet.',4:'Your turn. What would you do here?',6:'See what checking the list caught?',9:'Mistakes are cheap when you can rewind.',10:'That’s the lesson. Now try it on your own folder.'};
+const GK=Object.keys(G).map(Number);
+const CH=['Ask','Look','Plan','Check','Act','Undo'];
+const KC={h:'#f4dc5a',c:'#3d6fb6',tool:'#2e6b4f',perm:'#c23b3b'};
+const KN={h:'You',c:'Claude',tool:'Claude used a tool',perm:'Permission request'};
+const COUNTS=[['PDFs',61],['Images',88],['Installers',23],['Other',42]];
+const MOVED=[['Documents',58],['Photos',88],['Installers',23],['Other',26]];
+const TYPES={doc:'#3d6fb6',img:'#2fa36b',ins:'#8a5cd6',oth:'#e3a72f'};
+const V=[{id:'A',hash:'notebook',name:'Field Notebook, developed'},{id:'D',hash:'over-the-shoulder',name:'Over the shoulder'},{id:'E',hash:'storyboard',name:'Storyboard'}];
+let s={i:0,pick:-1,guide:true,dismissed:-1,playing:false};
+let timer=null,cur=0,last=-1;
+/* files for D: 48 chips standing in for 214 files */
+const FILES=[];
+{let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;const mix=[['doc',13],['img',20],['ins',5],['oth',10]];mix.forEach(([t,n])=>{for(let j=0;j<n;j++)FILES.push({t,tax:false,r:rnd()})});[0,4,9].forEach(j=>FILES[j].tax=true);FILES.sort((a,b)=>a.r-b.r)}
+/* the guide: an original pixel ranger, placeholder name Wren */
+const MAP=['....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+const PC={h:'#2e6b4f',b:'#f4dc5a',s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:'#3d6fb6',g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'};
+const sprite=(px)=>{let r='';MAP.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'?' class="eye"':''}/>`}));return `<svg class="sprite bob" width="${12*px}" height="${15*px}" viewBox="0 0 12 15" aria-label="Wren, the guide">${r}</svg>`};
+const gIdx=()=>{let k=-1;GK.forEach(g=>{if(g<=s.i)k=g});return k};
+const bubble=()=>{const k=gIdx();if(!s.guide||k<0||s.dismissed===k)return '';const n=GK.indexOf(k);return `<div class="bubble" role="status"><button class="x" data-x aria-label="Hide guide message">×</button><div style="padding-right:22px">${G[k]}</div><div class="row"><div class="dots">${GK.map((g,j)=>`<i class="${j===n?'on':''}"></i>`).join('')}</div><button class="nextb" data-gnext>Next ›</button></div></div>`};
+const guide=(px)=>{const b=bubble();return b?sprite(px)+b:''};
+const choices=()=>Q.ch.map((c,j)=>{const done=s.pick>=0;const cls=done?(c.real?'real':j===s.pick?'pick':''):'';return `<button class="choice ${cls}" data-pick="${j}" ${done?'disabled':''}>${c.t}${done&&(c.real||j===s.pick)?`<span class="fb">${c.fb}</span>`:''}</button>`}).join('');
+const blocked=()=>s.i===PAUSE&&s.pick<0;
+const isNew=(j)=>j===s.i&&s.i>last?' new':'';
+function go(i){i=Math.max(0,Math.min(E.length-1,i));if(i>PAUSE&&s.pick<0)i=PAUSE;last=s.i;s.i=i;render()}
+function play(){s.playing=!s.playing;clearInterval(timer);if(s.playing){timer=setInterval(()=>{if(blocked()||s.i>=E.length-1){s.playing=false;clearInterval(timer);render();return}go(s.i+1)},1900)}render()}
+/* ---------- A+ ---------- */
+function specA(e){
+ if(e.spec==='count'){const mx=Math.max(...COUNTS.map(c=>c[1]));return `<div class="spec">${COUNTS.map(([n,v])=>`<div class="r"><span>${n}</span><span class="b" style="width:${v/mx*100}%"></span><span class="n">${v}</span></div>`).join('')}<div class="lg">Fig. What Claude found, before touching anything.</div></div>`}
+ if(e.spec==='moved'){const mx=Math.max(...MOVED.map(c=>c[1]));return `<div class="spec">${MOVED.map(([n,v])=>`<div class="r"><span>${n}/</span><span class="b" style="width:${v/mx*100}%;background:#3d6fb6"></span><span class="n">${v}</span></div>`).join('')}<div class="lg">Fig. Where the 195 files went. 3 tax files and 16 others stayed put.</div></div>`}
+ return '';
+}
+function rA(){
+ const chi=CH.indexOf(E[s.i].ch);
+ document.getElementById('Atabs').innerHTML=CH.map((c,j)=>{const first=E.findIndex(e=>e.ch===c);return `<button class="tab ${j<chi?'done':j===chi?'here':''}" data-go="${first}">${j+1}. ${c}</button>`}).join('');
+ const pausePanel=()=>{if(s.pick<0)return `<div class="pause"><h3>${Q.q}</h3><p class="hint">Make your call before you see what the human did.</p>${choices()}</div>`;
+  const y=Q.ch[s.pick];return `<div class="pause"><h3>${Q.q}</h3><div class="cmp"><div class="y"><b>Your call</b>${y.t}</div><div class="r"><b>What the human did</b>${Q.ch[1].t} ${y.real?'Same call.':''}</div></div><p class="hint" style="margin-top:8px">${y.fb}</p></div>`};
+ document.getElementById('Aout').innerHTML=E.map((e,j)=>{
+  if(j>s.i)return '';
+  const cap=e.k==='tool'?`${e.tool} · ${e.t}`:`${KN[e.k]} · ${e.t}`;
+  const note=e.note?`<div class="note ${e.note.w}"><b>${e.note.w==='h'?'Human steered.':'Claude acted.'}</b> ${e.note.t}</div>`:'';
+  const g=j===s.i?`<div class="gA">${guide(4)}</div>`:'';
+  const body=e.k==='perm'?`<div class="prompt"><div class="t">${e.text}</div><div class="bs">${e.opts.map(o=>`<span>${o}</span>`).join('')}</div></div>`:`<p>${e.text}</p>${specA(e)}`;
+  return `<div class="rowA ${j===s.i?'cur':''}${isNew(j)}"><div class="fig">Fig. ${j+1}</div><div class="blk ${e.k}"><div class="cap">${cap}</div>${body}</div><div class="marg">${note}${g}</div></div>`+(j===PAUSE?pausePanel():'')}).join('');
+ const done=s.i===E.length-1;
+ document.getElementById('Arecap').innerHTML=done?`<div class="recap new"><section><h2>Field notes</h2><div class="capb">You can now: hand Claude a task on your files and safely undo it.</div><ol><li>Give one clear Goal in plain words.</li><li>Let Claude look and plan before anything changes.</li><li>Protect what matters, then ask to see the list.</li><li>If you change your mind, rewind.</li></ol></section><section><h2>Hands-on exercise</h2><p style="margin:0">Open the Claude Code Desktop app on a copy of a messy folder and paste:</p><pre id="Ap">Look at this folder and suggest how to sort it into folders by type. Don't move anything until I've seen the list.</pre><button class="copy" data-copy>Copy prompt</button> <span id="Acp" role="status"></span><p style="margin:10px 0 0;color:#5b6b62">Then compare your result with ours, the Reference result.</p></section></div>`:'';
+ const bar=document.getElementById('Abar');bar.style.gridTemplateColumns=`repeat(${E.length},minmax(0,1fr))`;
+ bar.innerHTML=E.map((e,j)=>`<button class="tk ${j<=s.i?'done':''} ${j===s.i?'here':''}" style="background:${j===PAUSE?'#c23b3b':KC[e.k]}" data-go="${j}" aria-label="Step ${j+1}"></button>`).join('');
+ const chs=document.getElementById('Achs');chs.style.gridTemplateColumns=`repeat(${E.length},minmax(0,1fr))`;
+ chs.innerHTML=E.map((e,j)=>`<span>${j===0||E[j-1].ch!==e.ch?e.ch:''}</span>`).join('');
+ document.getElementById('Atime').textContent=`${E[s.i].t} / ${E[E.length-1].t}`;
+ const c=document.querySelector('#A .rowA.cur');if(c&&s.i!==last)c.scrollIntoView({block:'center',behavior:'smooth'});
+}
+/* ---------- D ---------- */
+function rD(){
+ let h='';
+ E.forEach((e,j)=>{if(j>s.i)return;const pin=e.note?`<span class="pin ${e.note.w}">${e.note.w==='h'?'Steering':'Why'}: ${e.note.t}</span>`:'';
+  if(e.k==='tool')h+=`<div class="tool${isNew(j)}"><b>${e.tool}</b> · ${e.text}${pin}</div>`;
+  else if(e.k==='perm'){const live=s.pick<0;h+=`<div class="permc${isNew(j)}"><div class="t">${e.text}</div><div style="color:#596273;font-size:14px">${live?'Decision pause: you’re in the human’s seat. Choose.':'Paused here for your call.'}</div><div class="bs">${live?`<button class="pb" data-pick="0">Allow always</button><button class="pb" data-pick="1">Show me the list first</button><button class="pb" data-pick="2">Deny</button>`:e.opts.map(o=>`<span class="pb" style="opacity:.4">${o}</span>`).join('')}</div></div>`;
+   if(!live){const y=Q.ch[s.pick];h+=`<div class="reveal"><b>You chose:</b> ${y.t} ${y.fb}</div>`}}
+  else h+=`<div class="msg ${e.k}${isNew(j)}">${e.text}${pin}</div>`});
+ const chat=document.getElementById('Dchat');chat.innerHTML=h;chat.scrollTop=chat.scrollHeight;
+ const looked=s.i>=1,planned=s.i>=2,flagged=s.i>=6,moved=s.i>=8,back=s.i>=10;
+ const col=f=>looked?TYPES[f.t]:'#c5cbd5';
+ const chip=f=>`<span class="chip ${flagged&&f.tax?'tax':''}" style="background:${col(f)}" title="${f.tax?'tax file':''}"></span>`;
+ const inDir=d=>FILES.filter(f=>moved&&!f.tax&&f.t===d&&!(back&&d==='img'));
+ const loose=FILES.filter(f=>!moved||f.tax||(back&&f.t==='img'));
+ const dirs=[['doc','Documents'],['img','Photos'],['ins','Installers'],['oth','Other']];
+ document.getElementById('Dfold').innerHTML=`<div class="lbl"><span>Loose in Downloads</span><span>${loose.length} shown</span></div><div class="loose">${loose.map(chip).join('')}</div>
+  ${planned?`<div class="dirs">${dirs.map(([k,n])=>{const fs=inDir(k);return `<div class="dir ${moved?'':'ghost'}"><div class="lbl"><span>${n}/</span><span>${moved?fs.length:'planned'}</span></div><div class="chips">${fs.map(chip).join('')}</div></div>`}).join('')}</div>`:''}
+  <div class="legend">${looked?'<span><i style="background:#3d6fb6"></i>Documents</span><span><i style="background:#2fa36b"></i>Photos</span><span><i style="background:#8a5cd6"></i>Installers</span><span><i style="background:#e3a72f"></i>Other</span>':'<span>Files Claude hasn’t looked at yet</span>'}${flagged?'<span><i style="outline:2px solid #e0342f;background:#fff"></i>Tax files, stay put</span>':''}<span>Each tile stands for about 4 files.</span></div>`;
+ document.getElementById('Dcount').textContent=moved?(back?'88 photos back in Downloads':'195 files moved'):looked?'214 files':'';
+ document.getElementById('Dguide').innerHTML=guide(5);
+ document.getElementById('Dtime').textContent=`${E[s.i].t} / ${E[E.length-1].t}`;
+}
+/* ---------- E ---------- */
+function rE(){
+ const panels=E.map((e,j)=>{
+  const head=`<div class="phead"><span>${j+1}. ${e.ch}</span><span>${e.t}</span></div>`;
+  if(j>s.i){if(j===s.i+1&&!blocked())return `<div class="pan dim">${head}<div class="blank">?</div></div>`;return ''}
+  if(e.k==='perm'){return `<div class="pan k-perm ${j===s.i?'cur':''}${isNew(j)}">${head}<div class="pq"><h3>${Q.q}</h3>${choices()}</div></div>`}
+  const who=e.k==='h'?'<div class="who h">You</div>':'<div class="who c">AI</div>';
+  const say=e.k==='tool'?`<b>${e.tool}.</b> ${e.text}`:e.text;
+  const narr=e.note?`<div class="narr">${sprite(2)}<span>${e.note.t}</span></div>`:'';
+  return `<div class="pan k-${e.k} ${j===s.i?'cur':''}${isNew(j)}" data-go="${j}" role="button" tabindex="0" aria-label="Panel ${j+1}">${head}<div class="scene">${e.k==='h'?'':who}<div class="say">${say}</div>${e.k==='h'?who:''}</div>${narr}</div>`});
+ document.getElementById('Egrid').innerHTML=panels.join('');
+ document.getElementById('Eguide').innerHTML=guide(4);
+ const c=document.querySelector('#E .pan.cur');if(c&&s.i!==last)c.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function render(){
+ V.forEach((v,j)=>document.getElementById(v.id).classList.toggle('on',j===cur));
+ [rA,rD,rE][cur]();
+ document.querySelectorAll('[data-play]').forEach(b=>b.textContent=s.playing?'❚❚':'▶');
+ document.querySelectorAll('[data-mute]').forEach(b=>b.textContent=s.guide?'Guide on':'Guide off');
+ document.querySelectorAll('[data-next]').forEach(b=>b.disabled=blocked()||s.i===E.length-1);
+ document.querySelectorAll('[data-prev]').forEach(b=>b.disabled=s.i===0);
+ document.getElementById('swl').textContent=`${V[cur].id}${V[cur].id==='A'?'+':''} · ${V[cur].name}`;
+ last=s.i;
+}
+function setV(j){cur=(j+V.length)%V.length;try{history.replaceState(null,'','#'+V[cur].hash)}catch(e){}last=-1;render()}
+function fromHash(){const h=location.hash.slice(1);const j=V.findIndex(v=>v.hash===h);cur=j<0?0:j;render()}
+document.addEventListener('click',ev=>{
+ const t=ev.target.closest('button,[data-go]');if(!t)return;
+ if(t.id==='swp')return setV(cur-1);
+ if(t.id==='swn')return setV(cur+1);
+ if(t.dataset.pick!==undefined){s.pick=+t.dataset.pick;last=-1;return render()}
+ if(t.hasAttribute('data-gnext')){s.dismissed=gIdx();if(!blocked()&&s.i<E.length-1)return go(s.i+1);return render()}
+ if(t.hasAttribute('data-next'))return go(s.i+1);
+ if(t.hasAttribute('data-prev'))return go(s.i-1);
+ if(t.hasAttribute('data-play'))return play();
+ if(t.hasAttribute('data-mute')){s.guide=!s.guide;return render()}
+ if(t.hasAttribute('data-x')){s.dismissed=gIdx();return render()}
+ if(t.hasAttribute('data-copy')){const out=document.getElementById('Acp');const txt=document.getElementById('Ap').textContent;try{navigator.clipboard.writeText(txt).then(()=>out.textContent='Copied.',()=>out.textContent='Select the text to copy it.')}catch(e){out.textContent='Select the text to copy it.'}return}
+ if(t.dataset.go!==undefined)return go(+t.dataset.go);
+});
+document.addEventListener('keydown',ev=>{const a=document.activeElement;if(a&&(a.isContentEditable||/INPUT|TEXTAREA/.test(a.tagName)))return;
+ if(ev.key==='ArrowLeft')setV(cur-1);else if(ev.key==='ArrowRight')setV(cur+1);else if(ev.key==='.')go(s.i+1);else if(ev.key===',')go(s.i-1);
+ else if((ev.key==='Enter'||ev.key===' ')&&a&&a.dataset&&a.dataset.go!==undefined&&a.tagName!=='BUTTON'){ev.preventDefault();go(+a.dataset.go)}
+ else if(ev.key===' '&&a===document.body){ev.preventDefault();play()}});
+window.addEventListener('hashchange',fromHash);
+fromHash();
+}
+</script>
+</body>
+</html>
