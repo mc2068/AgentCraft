@@ -24,3 +24,7 @@ Mohamed's feedback on rounds 1-2: the learner should feel *in* the conversation,
 
 - `#your-seat`: F, chat in the middle, Wren coaches from a side panel (a strip above the composer on phones).
 - `#group-chat`: G, Wren is a third participant in the chat, setting up each of your turns and reacting to your replies inline.
+
+## Final combined direction (`final.html`)
+
+Recommended by Claude and approved for a final prototype by Mohamed: F "Your seat" + D's live folder view + A+'s field-notes ending. Off-script answers get one in-character Claude reply, then a "back to the real session" divider and the real human's message (dashed) before the session continues. Desktop: chat + side panel (coach above folder). Phone: Coach | Your folder tabs above the composer, with a dot when the folder changes.
