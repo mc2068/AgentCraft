@@ -32,3 +32,7 @@ Recommended by Claude and approved for a final prototype by Mohamed: F "Your sea
 ## Colour exploration (`colours.html`)
 
 For issue #7: the locked final player in four palettes (Field Guide, Survey Map, Daylight, Ink & Lime). Switch with the bar or arrow keys. File-type colours in the Live view stay fixed.
+
+## Calm palettes (`colours2.html`)
+
+Mohamed asked for calm, eye-friendly colours from Coolors: Sage Slate, Fern, Harbor, Mist (each links to its Coolors palette). File-type tiles muted to match.
