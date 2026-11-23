@@ -8,6 +8,18 @@ Agentcraft is an unofficial learning site that teaches people to get real work d
 Anyone using Agentcraft to learn Claude Code, developer or not.
 _Avoid_: User, student, customer
 
+**Persona**:
+One of the two kinds of Foundations Learner every Foundations Goal must serve: the Knowledge worker and the Aspiring builder.
+_Avoid_: User type, audience segment
+
+**Knowledge worker**:
+A Persona who works mainly in documents and spreadsheets (marketing, ops, admin, students).
+_Avoid_: Office user, non-technical user
+
+**Aspiring builder**:
+A Persona who wants to make a site or tool without coding (founders, designers, freelancers).
+_Avoid_: Vibe coder, no-coder
+
 **Journey**:
 The single route a Learner follows from first contact with AI to advanced Claude Code use, made of Tracks in order.
 _Avoid_: Path, course, curriculum (as a name for the whole route)
@@ -33,8 +45,12 @@ A real outcome a Learner wants (e.g. "automate a weekly report"), used as the wa
 _Avoid_: Use case, topic
 
 **Lesson**:
-One unit of teaching inside a Track, built around a Goal.
+One unit of teaching inside a Track, built around a Goal. Every Lesson has the same shape: the Capability it unlocks, a Session replay, a Hands-on exercise with its Reference result, and optionally an Explorable.
 _Avoid_: Chapter, module (for a single unit)
+
+**Flagship lesson**:
+One of the few Advanced track Lessons shipped in v1, each a Session replay of a real developer workflow.
+_Avoid_: Featured lesson, preview lesson
 
 **Lens**:
 The Claude Code surface a Lesson is taught in (Desktop app or Terminal). Each Track has exactly one Lens.
