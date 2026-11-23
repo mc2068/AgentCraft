@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay player prototype</title>
+<!-- PROTOTYPE, throwaway. Question: what should the Session replay player and guide look like?
+     Three structurally different variants on one page, switched by #field-notebook, #edit-bay, #trail-cards
+     and the floating bar at the bottom (or the left/right arrow keys). Not production code. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning, calm and exact
+   IDEA a naturalist's field notebook / a light edit bay / a trail of cards; a pixel ranger guides you
+   PICTURE the replay itself, filling the first screen, with the guide beside the action
+   COLOUR A: green-tinted paper, pine ink, highlighter yellow, survey blue, red pencil. B: studio white, cobalt, teal, violet. C: sky, meadow, sun
+   TYPE A: Newsreader + Plex Mono. B: Hanken Grotesk. C: Nunito
+   LAYOUT A: transcript column + margin notes, scrubber at the foot. B: monitor + inspector over lanes. C: trail map over one big card with the guide */
+:root{color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:#fff;color:#1f2a24;font:16px/1.55 system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
+button{font:inherit;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid #3d6fb6;outline-offset:2px}
+.proto{font:500 13px/1.3 'IBM Plex Mono',monospace;background:#1f2a24;color:#fff;padding:4px 8px;border-radius:4px;white-space:nowrap}
+.v{display:none}
+.v.on{display:block}
+svg.sprite{shape-rendering:crispEdges;display:block}
+.sprite .eye{animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bob{animation:bob 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.bob,.sprite .eye{animation:none}*{transition:none!important}}
+/* guide bubble (shared pattern from the owner's reference, recoloured) */
+.bubble{background:#fff;border:1.5px solid #1f2a24;border-radius:14px;padding:12px 14px;position:relative;box-shadow:3px 3px 0 #1f2a24;font-size:15px}
+.bubble .x{position:absolute;top:4px;right:6px;border:0;background:none;font-size:18px;width:32px;height:32px;color:inherit}
+.bubble .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+.dots{display:flex;gap:5px}
+.dots i{width:7px;height:7px;border-radius:9px;background:#c9d2cc}
+.dots i.on{width:20px;background:#2e6b4f}
+.nextb{border:0;border-radius:8px;padding:8px 14px;background:#2e6b4f;color:#fff;font-weight:600;min-height:40px}
+/* ---------- A: Field Notebook ---------- */
+#A{background:#f4f6f2;font-family:Newsreader,Georgia,serif;min-height:100vh}
+#A header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;padding:28px max(5vw,16px) 8px;max-width:1240px;margin:auto}
+#A h1{font-size:clamp(28px,4vw,42px);line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:600;text-wrap:balance}
+#A .sub{font-size:17px;color:#4b5a52;margin:4px 0 0}
+#A main{max-width:1240px;margin:auto;padding:8px max(5vw,16px) 150px}
+#A .rowA{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start;margin-bottom:14px}
+#A .blk{background:#fff;border:1px solid #d6ddd7;border-radius:4px;padding:12px 16px;transition:opacity .3s}
+#A .blk.cur{border-color:#2e6b4f;box-shadow:0 0 0 2px #2e6b4f}
+#A .cap{font:500 13px/1.3 'IBM Plex Mono',monospace;color:#5b6b62;margin-bottom:4px;font-variant:small-caps}
+#A .blk p{margin:0;font-size:18px}
+#A .blk .det{font:13px/1.4 'IBM Plex Mono',monospace;color:#4b5a52;margin-top:6px}
+#A .h p{background:linear-gradient(transparent 55%,#f4dc5a 55%);display:inline}
+#A .note{font-size:15px;line-height:1.4;padding-left:12px;border-left:3px solid}
+#A .note.h{border-color:#e0c23a}
+#A .note.c{border-color:#3d6fb6}
+#A .note b{font-weight:600}
+#A .future{opacity:.28}
+#A .marg{position:relative}
+#A .gA{display:flex;gap:10px;align-items:flex-end;margin-top:12px}
+#A .gA .bubble{flex:1}
+#A .perm{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#A .perm span{font:13px 'IBM Plex Mono',monospace;border:1px solid #9aa79f;border-radius:4px;padding:4px 8px}
+#A .pause{background:#fff;border:2px dashed #c23b3b;border-radius:4px;padding:16px}
+#A .pause h3{margin:0 0 10px;font-size:21px;line-height:1.2}
+.choice{flex:none;display:block;width:100%;text-align:left;border:1.5px solid #9aa79f;background:#fff;border-radius:6px;padding:10px 12px;margin:8px 0;min-height:44px;font-size:16px}
+.choice:hover{border-color:#1f2a24}
+.choice:disabled{color:inherit;cursor:default}
+.choice.pick{border-color:#1f2a24;background:#fffbe3}
+.choice.real{border-color:#2e6b4f;background:#e8f2ec}
+.fb{font-size:14px;color:#4b5a52;display:block;margin-top:2px}
+.scrub{position:fixed;left:0;right:0;bottom:64px;background:#fff;border-top:1px solid #d6ddd7;padding:8px max(5vw,16px);display:none;align-items:center;gap:12px;z-index:5}
+#A.on~.scrub{display:flex}
+.scrub .bar{flex:1;display:grid;gap:3px;height:28px;align-items:end}
+.scrub .tk{height:14px;border-radius:2px;border:0;padding:0;opacity:.45}
+.scrub .tk.done{opacity:1}
+.scrub .tk.here{height:28px;opacity:1}
+.ctl{border:1px solid #9aa79f;background:#fff;border-radius:8px;min-width:44px;min-height:40px;font-weight:600}
+@media(max-width:760px){#A .rowA{grid-template-columns:minmax(0,1fr);gap:6px}#A .note{margin-left:16px}}
+/* ---------- B: Edit Bay ---------- */
+#B{background:#fafbfd;font-family:'Hanken Grotesk',system-ui,sans-serif;color:#141a2b;min-height:100vh}
+#B header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px max(3vw,16px);border-bottom:1px solid #e2e6ef;background:#fff}
+#B h1{font-size:22px;margin:0;letter-spacing:-.01em}
+#B .top{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;padding:16px max(3vw,16px);align-items:start}
+#B .mon{background:#fff;border:1px solid #e2e6ef;border-radius:12px;min-height:340px;display:flex;flex-direction:column;justify-content:center;padding:28px;position:relative}
+#B .mon .kind{font-weight:700;font-size:14px;color:#2251d1;margin-bottom:8px}
+#B .mon p{font-size:clamp(20px,2.6vw,28px);line-height:1.25;margin:0;letter-spacing:-.01em}
+#B .mon .det{font-size:15px;color:#59627a;margin-top:12px}
+#B .insp{background:#fff;border:1px solid #e2e6ef;border-radius:12px;padding:16px;max-height:340px;overflow:auto}
+#B .insp h2{font-size:15px;margin:0 0 10px;color:#59627a}
+#B .flagnote{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px;cursor:pointer;border:1.5px solid transparent;background:#f1f3f8}
+#B .flagnote.cur{border-color:#141a2b;background:#fff}
+#B .tl{margin:0 max(3vw,16px);background:#fff;border:1px solid #e2e6ef;border-radius:12px;padding:12px;overflow-x:auto}
+#B .tlin{min-width:640px;position:relative}
+#B .lane{display:grid;grid-template-columns:96px repeat(var(--n),minmax(0,1fr));gap:4px;align-items:center;height:38px}
+#B .lane .ln{font-size:14px;font-weight:600;color:#59627a}
+#B .clip{height:28px;border-radius:6px;border:0;padding:0 6px;color:#fff;font-size:12px;font-weight:600;text-align:left;overflow:hidden;white-space:nowrap}
+#B .clip.fut{opacity:.35}
+#B .ruler{display:grid;grid-template-columns:96px repeat(var(--n),minmax(0,1fr));gap:4px;height:64px;align-items:end}
+#B .flag{justify-self:center;width:12px;height:12px;border-radius:2px 8px 8px 2px}
+#B .ph{position:absolute;top:0;bottom:0;width:2px;background:#141a2b;pointer-events:none;transition:left .3s}
+#B .riding{position:absolute;top:0;transform:translateX(-50%);transition:left .3s;pointer-events:none}
+#B .bctl{display:flex;gap:8px;align-items:center;padding:12px max(3vw,16px)}
+#B .gB{position:absolute;right:12px;bottom:12px;max-width:280px}
+#B .pause h3{margin:0 0 8px;font-size:22px}
+#B .choice{border-color:#c9cfdd}
+@media(max-width:760px){#B .top{grid-template-columns:minmax(0,1fr)}#B .gB{position:static;max-width:none;margin-top:12px}}
+/* ---------- C: Trail Cards ---------- */
+#C{background:linear-gradient(#dff1fb,#f3fbff 60%);font-family:Nunito,system-ui,sans-serif;color:#17324a;min-height:100vh}
+#C header{padding:20px max(5vw,16px) 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center;max-width:1240px;margin:auto}
+#C h1{font-size:clamp(24px,3.4vw,36px);margin:0;font-weight:800;letter-spacing:-.01em}
+#C .trail{max-width:1240px;margin:12px auto 0;padding:0 max(5vw,16px);overflow-x:auto}
+#C .trail ol{list-style:none;display:flex;gap:0;padding:12px 0;margin:0;min-width:520px}
+#C .trail li{flex:1;text-align:center;position:relative;font-weight:700;font-size:14px;color:#5a7a92}
+#C .trail li::before{content:"";position:absolute;top:13px;left:-50%;right:50%;border-top:4px dotted #8fc7a4;z-index:0}
+#C .trail li:first-child::before{display:none}
+#C .trail .stop{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;background:#fff;border:4px solid #8fc7a4;position:relative;z-index:1}
+#C .trail li.done .stop{background:#3a9d5d;border-color:#3a9d5d}
+#C .trail li.here .stop{background:#ffc83d;border-color:#17324a}
+#C .trail li.here{color:#17324a}
+#C .stage{max-width:1100px;margin:16px auto 0;padding:0 max(5vw,16px);display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:center}
+#C .guideC{display:flex;flex-direction:column;align-items:center;gap:10px}
+#C .bubble{border-color:#17324a;box-shadow:3px 3px 0 #17324a}
+#C .card{perspective:1200px;min-height:340px}
+#C .inner{position:relative;min-height:340px;transition:transform .6s;transform-style:preserve-3d}
+#C .inner.flip{transform:rotateY(180deg)}
+#C .face{position:absolute;inset:0;background:#fff;border-radius:22px;padding:28px;box-shadow:0 6px 0 #b9dcef;backface-visibility:hidden;display:flex;flex-direction:column;justify-content:safe center;overflow:auto}
+#C .back{transform:rotateY(180deg);background:#fffbea}
+#C .who{font-weight:800;font-size:15px;color:#3a9d5d;margin-bottom:6px}
+#C .face p{font-size:clamp(20px,2.4vw,26px);line-height:1.3;margin:0;font-weight:700}
+#C .face .det{font-size:16px;font-weight:500;color:#5a7a92;margin-top:10px}
+#C .face .tip{margin-top:16px;font-size:16px;font-weight:600;background:#e6f5ec;border-radius:12px;padding:10px 14px}
+#C .choice{border-radius:14px;border-color:#b9dcef;font-weight:700}
+#C .cnav{max-width:1100px;margin:18px auto 0;padding:0 max(5vw,16px);display:flex;justify-content:flex-end;gap:10px}
+#C .big{border:0;border-radius:14px;padding:12px 22px;font-weight:800;background:#3a9d5d;color:#fff;min-height:48px}
+#C .big:disabled{opacity:.4;cursor:default}
+#C .big.alt{background:#fff;color:#17324a;box-shadow:0 3px 0 #b9dcef}
+@media(max-width:700px){#C .card,#C .inner{min-height:460px}#C .stage{grid-template-columns:minmax(0,1fr)}#C .guideC{flex-direction:row;align-items:flex-end}#C .guideC .bubble{flex:1}}
+/* ---------- switcher ---------- */
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;width:40px;height:40px;font-size:18px}
+.sw span{padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.muteb{border:1px solid currentColor;background:transparent;color:inherit;border-radius:8px;min-height:40px;padding:0 12px;font-weight:600}
+</style>
+</head>
+<body>
+<section class="v" id="A" aria-label="Variant A, Field Notebook">
+  <header>
+    <div><h1>Your first task: sort and rename files</h1><p class="sub">Tidy a messy folder · Lesson 2 of 3 · Session replay</p></div>
+    <div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div>
+  </header>
+  <main id="Aout"></main>
+</section>
+<div class="scrub" aria-label="Replay scrubber">
+  <button class="ctl" data-prev aria-label="Previous step">‹</button>
+  <button class="ctl" data-play aria-label="Play or pause">▶</button>
+  <button class="ctl" data-next aria-label="Next step">›</button>
+  <div class="bar" id="Abar"></div>
+  <span id="Atime" style="font:13px 'IBM Plex Mono',monospace;white-space:nowrap"></span>
+</div>
+
+<section class="v" id="B" aria-label="Variant B, Edit Bay">
+  <header><h1>Your first task: sort and rename files</h1><div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div></header>
+  <div class="top"><div class="mon" id="Bmon"></div><aside class="insp"><h2>Steering notes</h2><div id="Bnotes"></div></aside></div>
+  <div class="tl"><div class="tlin" id="Btl"></div></div>
+  <div class="bctl"><button class="ctl" data-prev aria-label="Previous step">‹</button><button class="ctl" data-play aria-label="Play or pause">▶</button><button class="ctl" data-next aria-label="Next step">›</button><span id="Btime" style="font-weight:600;margin-left:8px"></span></div>
+</section>
+
+<section class="v" id="C" aria-label="Variant C, Trail Cards">
+  <header><h1>Your first task: sort and rename files</h1><div style="display:flex;gap:8px;align-items:center"><button class="muteb" data-mute>Guide on</button><span class="proto">Prototype · sample session</span></div></header>
+  <nav class="trail" aria-label="Chapters"><ol id="Ctrail"></ol></nav>
+  <div class="stage"><div class="guideC" id="Cguide"></div><div class="card"><div class="inner" id="Ccard"></div></div></div>
+  <div class="cnav"><button class="big alt" data-prev>Back</button><button class="big" data-next>Next</button></div>
+</section>
+
+<nav class="sw" aria-label="Prototype variant switcher"><button id="swp" aria-label="Previous variant">←</button><span id="swl"></span><button id="swn" aria-label="Next variant">→</button></nav>
+
+<script>
+{
+const E=[
+{k:'h',lane:'You',t:'0:00',ch:'Ask',text:'My Downloads folder is a mess. Can you sort it into folders by type?',note:{w:'h',t:'One clear Goal in one sentence. No technical words needed.'}},
+{k:'tool',lane:'Files',t:'0:04',ch:'Look',tool:'List files',text:'Looked at 214 files in Downloads.',det:'PDFs 61 · images 88 · installers 23 · other 42',note:{w:'c',t:'Claude looks before it acts. It reads the folder but changes nothing yet.'}},
+{k:'c',lane:'Claude',t:'0:09',ch:'Plan',text:'My plan: make four folders (Documents, Photos, Installers, Other) and rename screenshots by date. Shall I go ahead?',note:{w:'c',t:'A plan in plain words, then a question. Good agents ask before big changes.'}},
+{k:'h',lane:'You',t:'0:21',ch:'Plan',text:'Leave anything with “tax” in the name exactly where it is.',note:{w:'h',t:'Steering: protect what matters before anything moves.'}},
+{k:'perm',lane:'Permissions',t:'0:26',ch:'Check',text:'Claude wants to move 198 files into 4 new folders.',opts:['Allow once','Allow always','Deny'],pause:true},
+{k:'h',lane:'You',t:'0:30',ch:'Check',text:'Show me the list of files you’ll move first.',note:{w:'h',t:'Asking to see the list costs ten seconds and catches mistakes.'}},
+{k:'c',lane:'Claude',t:'0:34',ch:'Check',text:'Here’s the list. I found 3 files with “tax” in the name in it and took them out: tax-2025.pdf, tax-receipt-march.pdf, TAX_notes.docx.',note:{w:'c',t:'Checking caught 3 files that would have moved. This is why you look first.'}},
+{k:'h',lane:'You',t:'0:41',ch:'Act',text:'Looks right. Go ahead.'},
+{k:'tool',lane:'Files',t:'0:44',ch:'Act',tool:'Move files',text:'Moved 195 files into 4 folders. Nothing was deleted.',note:{w:'c',t:'Claude says what it did and what it did not do.'}},
+{k:'h',lane:'You',t:'1:02',ch:'Undo',text:'Actually, undo the Photos part. I want photos sorted by year.',note:{w:'h',t:'Changing your mind is normal. Rewind puts files back.'}},
+{k:'tool',lane:'Files',t:'1:05',ch:'Undo',tool:'Rewind',text:'Put 88 photos back where they were.'}
+];
+const PAUSE=4;
+const Q={q:'Claude asks to move 198 files. What would you do?',ch:[
+ {t:'Allow always. It seems to know what it’s doing.',fb:'Fast, but Claude would never ask again before moving files.'},
+ {t:'Ask to see the list of files first.',fb:'This is what the human did. Watch what it caught.',real:1},
+ {t:'Deny, and sort them by hand.',fb:'Safe, but you lose the help you came for.'}]};
+const G={0:'Hi, I’m Wren, your guide. Watch how the request is phrased: one clear Goal.',1:'Claude looks first. Notice it doesn’t change anything yet.',4:'Your turn. What would you do here?',6:'See what checking the list caught?',9:'Mistakes are cheap when you can rewind.'};
+const GK=Object.keys(G).map(Number);
+const CH=['Ask','Look','Plan','Check','Act','Undo'];
+const KC={h:'#f4dc5a',c:'#3d6fb6',tool:'#2e6b4f',perm:'#c23b3b'};
+const KB={You:'#7a4fd1',Claude:'#2251d1',Files:'#0f9b8e',Permissions:'#d1343f'};
+const KN={h:'You',c:'Claude',tool:'Claude used a tool',perm:'Permission request'};
+const V=[{id:'A',hash:'field-notebook',name:'Field Notebook'},{id:'B',hash:'edit-bay',name:'Edit Bay'},{id:'C',hash:'trail-cards',name:'Trail Cards'}];
+let s={i:0,pick:-1,guide:true,dismissed:-1,playing:false};
+let timer=null;
+/* pixel ranger, an original character (placeholder name Wren) */
+const MAP=['....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+const PC={h:'#2e6b4f',b:'#f4dc5a',s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:'#3d6fb6',g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'};
+const sprite=(px)=>{let r='';MAP.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'?' class="eye"':''}/>`}));return `<svg class="sprite bob" width="${12*px}" height="${15*px}" viewBox="0 0 12 15" aria-label="Wren, the guide">${r}</svg>`};
+const gIdx=()=>{let k=-1;GK.forEach(g=>{if(g<=s.i)k=g});return k};
+const bubble=()=>{const k=gIdx();if(!s.guide||k<0||s.dismissed===k)return '';const n=GK.indexOf(k);return `<div class="bubble" role="status"><button class="x" data-x aria-label="Hide guide message">×</button><div style="padding-right:22px">${G[k]}</div><div class="row"><div class="dots">${GK.map((g,j)=>`<i class="${j===n?'on':''}"></i>`).join('')}</div><button class="nextb" data-next>Next ›</button></div></div>`};
+const choices=()=>Q.ch.map((c,j)=>{const done=s.pick>=0;const cls=done?(c.real?'real':j===s.pick?'pick':''):'';return `<button class="choice ${cls}" data-pick="${j}" ${done?'disabled':''}>${c.t}${done&&(c.real||j===s.pick)?`<span class="fb">${c.fb}</span>`:''}</button>`}).join('');
+const blocked=()=>s.i===PAUSE&&s.pick<0;
+function go(i){i=Math.max(0,Math.min(E.length-1,i));if(i>PAUSE&&s.pick<0)i=PAUSE;s.i=i;render()}
+function play(){s.playing=!s.playing;clearInterval(timer);if(s.playing){timer=setInterval(()=>{if(blocked()||s.i>=E.length-1){s.playing=false;clearInterval(timer);render();return}go(s.i+1)},1800)}render()}
+/* ---- A ---- */
+function rA(){
+ const pauseRow=`<div class="rowA"><div class="pause"><h3>${Q.q}</h3>${choices()}</div><div></div></div>`;
+ const out=E.map((e,j)=>{
+  if(j>s.i)return '';
+  const cap=e.k==='tool'?`${e.tool} · ${e.t}`:`${KN[e.k]} · ${e.t}`;
+  const note=e.note?`<div class="note ${e.note.w}"><b>${e.note.w==='h'?'Human steered.':'Claude acted.'}</b> ${e.note.t}</div>`:'<div></div>';
+  const g=j===s.i&&bubble()?`<div class="gA">${sprite(4)}${bubble()}</div>`:'';
+  return `<div class="rowA"><div class="blk ${e.k} ${j===s.i?'cur':''}"><div class="cap">${cap}</div><p>${e.text}</p>${e.det?`<div class="det">${e.det}</div>`:''}${e.opts?`<div class="perm">${e.opts.map(o=>`<span>${o}</span>`).join('')}</div>`:''}</div><div class="marg">${note}${g}</div></div>`+(j===PAUSE?pauseRow:'')}).join('');
+ document.getElementById('Aout').innerHTML=out;
+ const bar=document.getElementById('Abar');bar.style.gridTemplateColumns=`repeat(${E.length},minmax(0,1fr))`;
+ bar.innerHTML=E.map((e,j)=>`<button class="tk ${j<=s.i?'done':''} ${j===s.i?'here':''}" style="background:${j===PAUSE?'#c23b3b':KC[e.k]}" data-go="${j}" aria-label="Step ${j+1}"></button>`).join('');
+ document.getElementById('Atime').textContent=`${E[s.i].t} / ${E[E.length-1].t}`;
+ const cur=document.querySelector('#A .blk.cur');if(cur&&s.playing)cur.scrollIntoView({block:'center',behavior:'smooth'});
+}
+/* ---- B ---- */
+function rB(){
+ const e=E[s.i];
+ let mon=blocked()||(s.i===PAUSE&&s.pick>=0)?`<div class="pause"><div class="kind" style="color:#d1343f">Decision pause</div><h3>${Q.q}</h3>${choices()}</div>`:`<div class="kind" style="color:${KB[e.lane]}">${e.lane}${e.tool?' · '+e.tool:''} · ${e.t}</div><p>${e.text}</p>${e.det?`<div class="det">${e.det}</div>`:''}`;
+ const b=bubble();mon+=b?`<div class="gB">${b}</div>`:'';
+ document.getElementById('Bmon').innerHTML=mon;
+ document.getElementById('Bnotes').innerHTML=E.map((x,j)=>x.note&&j<=s.i?`<div class="flagnote ${j===s.i?'cur':''}" data-go="${j}" tabindex="0"><b style="color:${x.note.w==='h'?'#7a4fd1':'#2251d1'}">${x.t} · ${x.note.w==='h'?'Human steered':'Claude acted'}</b><br>${x.note.t}</div>`:'').join('')||'<p style="color:#59627a">Notes appear as the replay reaches them.</p>';
+ const lanes=['You','Claude','Files','Permissions'];
+ const ruler=`<div class="ruler"><span></span>${E.map((x,j)=>j===PAUSE?'<span class="flag" style="background:#d1343f" title="Decision pause"></span>':x.note?`<span class="flag" style="background:${x.note.w==='h'?'#7a4fd1':'#2251d1'}"></span>`:'<span></span>').join('')}</div>`;
+ const rows=lanes.map(l=>`<div class="lane"><span class="ln">${l}</span>${E.map((x,j)=>x.lane===l?`<button class="clip ${j>s.i?'fut':''}" style="background:${KB[l]}" data-go="${j}" aria-label="Step ${j+1}">${x.t}</button>`:'<span></span>').join('')}</div>`).join('');
+ const tl=document.getElementById('Btl');tl.style.setProperty('--n',E.length);
+ tl.innerHTML=ruler+rows+'<div class="ph" id="Bph"></div><div class="riding" id="Bride">'+sprite(3)+'</div>';
+ requestAnimationFrame(()=>{const clip=tl.querySelector(`[data-go="${s.i}"]`);if(!clip)return;const x=clip.offsetLeft+clip.offsetWidth/2;document.getElementById('Bph').style.left=x+'px';document.getElementById('Bride').style.left=x+'px'});
+ const cn=document.querySelector('#Bnotes .cur');if(cn)cn.scrollIntoView({block:'nearest'});
+ document.getElementById('Btime').textContent=`${e.t} / ${E[E.length-1].t}`;
+}
+/* ---- C ---- */
+function rC(){
+ const chi=CH.indexOf(E[s.i].ch);
+ document.getElementById('Ctrail').innerHTML=CH.map((c,j)=>`<li class="${j<chi?'done':j===chi?'here':''}"><div class="stop"></div>${c}</li>`).join('');
+ const b=bubble();document.getElementById('Cguide').innerHTML=sprite(9)+(b||'');
+ const e=E[s.i];const isP=s.i===PAUSE;
+ const front=isP?`<div class="who" style="color:#d1343f">Decision pause</div><p>${Q.q}</p><div class="det">${e.text}</div>${choices()}`:`<div class="who">${e.lane}${e.tool?' · '+e.tool:''}</div><p>${e.text}</p>${e.det?`<div class="det">${e.det}</div>`:''}${e.note?`<div class="tip">${e.note.t}</div>`:''}`;
+ const back=isP&&s.pick>=0?`<div class="who">What really happened</div><p>${E[PAUSE+1].text}</p><div class="tip">${Q.ch[s.pick].real?'Same call as the human. ':''}${Q.ch[1].fb}</div>`:'';
+ document.getElementById('Ccard').innerHTML=`<div class="face">${front}</div><div class="face back">${back}</div>`;
+ document.getElementById('Ccard').classList.toggle('flip',isP&&s.pick>=0);
+}
+let cur=0;
+function render(){
+ V.forEach((v,j)=>document.getElementById(v.id).classList.toggle('on',j===cur));
+ [rA,rB,rC][cur]();
+ document.querySelectorAll('[data-play]').forEach(b=>b.textContent=s.playing?'❚❚':'▶');
+ document.querySelectorAll('[data-mute]').forEach(b=>b.textContent=s.guide?'Guide on':'Guide off');
+ document.querySelectorAll('[data-next]').forEach(b=>b.disabled=blocked()||s.i===E.length-1&&!b.classList.contains('nextb'));
+ document.getElementById('swl').textContent=`${V[cur].id} · ${V[cur].name}`;
+}
+function setV(j){cur=(j+V.length)%V.length;try{history.replaceState(null,'','#'+V[cur].hash)}catch(e){}render()}
+function fromHash(){const h=location.hash.slice(1);const j=V.findIndex(v=>v.hash===h);cur=j<0?0:j;render()}
+document.addEventListener('click',ev=>{
+ const t=ev.target.closest('button,[data-go]');if(!t)return;
+ if(t.id==='swp')return setV(cur-1);
+ if(t.id==='swn')return setV(cur+1);
+ if(t.hasAttribute('data-next')){if(t.classList.contains('nextb')){s.dismissed=gIdx();if(!blocked())go(s.i+1);else render();return}return go(s.i+1)}
+ if(t.hasAttribute('data-prev'))return go(s.i-1);
+ if(t.hasAttribute('data-play'))return play();
+ if(t.hasAttribute('data-mute')){s.guide=!s.guide;return render()}
+ if(t.hasAttribute('data-x')){s.dismissed=gIdx();return render()}
+ if(t.dataset.pick!==undefined){s.pick=+t.dataset.pick;return render()}
+ if(t.dataset.go!==undefined)return go(+t.dataset.go);
+});
+document.addEventListener('keydown',ev=>{const a=document.activeElement;if(a&&(a.isContentEditable||/INPUT|TEXTAREA/.test(a.tagName)))return;
+ if(ev.key==='ArrowLeft')setV(cur-1);else if(ev.key==='ArrowRight')setV(cur+1);else if(ev.key==='.')go(s.i+1);else if(ev.key===',')go(s.i-1);else if(ev.key===' '&&a===document.body){ev.preventDefault();play()}});
+window.addEventListener('hashchange',fromHash);
+window.addEventListener('resize',()=>{if(cur===1)rB()});
+fromHash();
+}
+</script>
+</body>
+</html>
