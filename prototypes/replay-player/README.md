@@ -28,3 +28,7 @@ Mohamed's feedback on rounds 1-2: the learner should feel *in* the conversation,
 ## Final combined direction (`final.html`)
 
 Recommended by Claude and approved for a final prototype by Mohamed: F "Your seat" + D's live folder view + A+'s field-notes ending. Off-script answers get one in-character Claude reply, then a "back to the real session" divider and the real human's message (dashed) before the session continues. Desktop: chat + side panel (coach above folder). Phone: Coach | Your folder tabs above the composer, with a dot when the folder changes.
+
+## Colour exploration (`colours.html`)
+
+For issue #7: the locked final player in four palettes (Field Guide, Survey Map, Daylight, Ink & Lime). Switch with the bar or arrow keys. File-type colours in the Live view stay fixed.
