@@ -1,0 +1,3 @@
+# The Guide is an original character, not a likeness of Claude
+
+Agentcraft's on-screen coach (placeholder name Wren) is an original pixel character in Agentcraft's own colours. We decided against an animated Claude or anything resembling Claude Code's mascot, even though that was the first idea: Anthropic's rules forbid imitating Claude Code's visual elements, Anthropic has already forced a community project to rename over a sound-alike, and a Claude look-alike would make the site look official. The Guide also speaks beside the conversation, never inside it, so beginners never confuse the coach with the AI doing the work.

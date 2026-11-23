@@ -62,15 +62,27 @@ Reserved for Claude Code's own modes (plan mode, permission modes). Never used f
 ## Learning experiences
 
 **Session replay**:
-A recorded real Claude Code session that a Learner steps through, with Steering notes and Decision pauses. The signature experience of Agentcraft.
-_Avoid_: Transcript, demo, simulation
+A real Claude Code session that the Learner plays from the human's seat: they write or pick the human's messages and answer Claude's requests, and Claude answers them. The signature experience of Agentcraft.
+_Avoid_: Transcript, demo, simulation, video
+
+**Off-script reply**:
+A Learner message that differs from what the real human wrote. Claude answers it once in character, then the Session replay rejoins the real session.
+_Avoid_: Wrong answer, branch
+
+**Live view**:
+The panel beside a Session replay showing what the session is doing to the Learner's files or tools as it happens.
+_Avoid_: Preview, visualization
+
+**Guide**:
+Agentcraft's own on-screen coach character (placeholder name Wren). Speaks beside the conversation, never inside it, and is never a likeness of Claude.
+_Avoid_: Mascot, assistant, Clawd, animated Claude
 
 **Steering note**:
-A margin note on a Session replay explaining why the human steered or why Claude acted as it did.
+The Guide's feedback on a Learner's call, or its explanation of why the human steered or why Claude acted as it did.
 _Avoid_: Annotation, comment
 
 **Decision pause**:
-A point in a Session replay where the Learner is asked "what would you do here?" before seeing what happened.
+A point in a Session replay where the Learner makes the human's call (a reply or a permission answer) before seeing what the real human did.
 _Avoid_: Quiz, question
 
 **Hands-on exercise**:
