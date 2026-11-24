@@ -32,3 +32,15 @@ The owner asked to combine two ThreeUI landing pages: "Agentic" (a pixel-art lan
 - **Inside every lesson:** four tabbed panels (Session replay, Live view, Wren, Skills).
 - Goals with persona filters, Advanced, "Built in the open" with counters, FAQ with smooth open, a pixel ground strip in the footer.
 - No three.js: 0 kB of libraries. The world pauses off-screen and freezes in Calm mode or reduced motion.
+
+## Round 4: real 3D, desktop first (`round4.html`)
+
+The owner wanted real 3D ("attractive, premium and unique") and said most learners will use a computer, so desktop comes first. This round keeps round 3's page and replaces the hero with a three.js voxel island. It borrows ideas, not code or art, from the two ThreeUI pages once they could be loaded: time of day, paper grain, hand-drawn underlines and seals from "Agentic"; huge stacked statement type, labels pinned to the 3D object and a scroll-driven five-phase story from "Agent AI".
+
+- **Hero island:** a floating Sage Slate island with pines, a cabin, a lantern, a voxel Wren and 24 file cubes. Ask for something (or pick a chip) and the files arrange themselves into folders, a bar chart, a page or a document, with a "Task completed" card over Wren. Drag to turn it, click Wren, "Mess it up" to reset.
+- **Time of day:** Morning, Day, Dusk and Night, set from the visitor's clock. The light, the sky and the page behind the island change; at night the windows and the lantern glow and stars come out.
+- **Pinned labels:** Your files, Wren, Undo and Permission labels follow points on the island as it turns.
+- **Ask. Decide. Check.:** a large statement that lights up word by word.
+- **Five steps on the island:** a pinned section at night. Scrolling walks through Ask, Look (a light passes over the files), Plan (outlines show where each file will go), Decide (Claude waits for you) and Act and check (the files move). The camera moves closer on the files for the middle steps. The step tabs can be clicked.
+- **Cost:** three.js r187, tree-shaken and inlined, about 142 kB gzipped. Each island renders only while on screen. Phones get a lighter version (no shadows, no idle motion, no labels), and Calm mode or reduced motion makes every change instant.
+- Source for the island: `island-src/island.js` (bundled with esbuild as an IIFE named `AgentIsland`).
