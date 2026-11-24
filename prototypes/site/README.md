@@ -22,3 +22,13 @@ Built after research note 010. One page with two views (`#home`, `#lesson`):
 - **Calm mode** (nav switch or bar) and `prefers-reduced-motion` turn movement into short fades and remove the typing delay.
 
 Plain CSS + Web Animations here; the real build would use Motion for React inside the replay island (note 010, section 4.4).
+
+## Round 3: pixel world + agent journey (`round3.html`)
+
+The owner asked to combine two ThreeUI landing pages: "Agentic" (a pixel-art landscape hero, interactive product panels, then a story) and "Agent AI" (a dark page where an intent prompt becomes a five-phase agent journey, then products, use cases, FAQ and community). The pages themselves were blocked from this session, so this is built from ThreeUI's own descriptions of them, with original code and art. No ThreeUI code is copied.
+
+- **Hero:** a Sage Slate pixel landscape drawn with Canvas 2D (hills, pines, a ranger cabin with smoke, drifting clouds, birds, Wren waving), slight parallax on mouse move. A "What do you want Claude to help with?" prompt plus example chips.
+- **One request, five steps:** a dark section. Your request (or an example) becomes Ask, Look, Plan, Decide, Act and check, with Wren walking the trail between steps and a small visual per step for your goal (folder, spreadsheet, page or document).
+- **Inside every lesson:** four tabbed panels (Session replay, Live view, Wren, Skills).
+- Goals with persona filters, Advanced, "Built in the open" with counters, FAQ with smooth open, a pixel ground strip in the footer.
+- No three.js: 0 kB of libraries. The world pauses off-screen and freezes in Calm mode or reduced motion.
