@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentcraft pages prototype</title>
+<!-- PROTOTYPE, throwaway. Issue #8: homepage and lesson page directions in Sage Slate.
+     Homepage: #home-goals (A Start with a goal), #home-play (B Play the first minute), #home-guide (C Field guide).
+     Lesson page: #lesson-focus (L1 one column), #lesson-rail (L2 with the Goal's lessons in a side rail).
+     Switch with the bar, the arrow keys, or the hash. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#eef1ec;--surface:#fafbf9;--ink:#2f3e46;--muted:#56696b;--line:#d5dcd1;--line2:#84a98c;--you:#52796f;--claude:#354f52;--hi:#cad2c5;--pill:#e1e7df;--good-bg:#e3ebe4;--ok-bg:#f2f1e6;--risk-bg:#f5e7e4;--risk:#c8574f;--f-doc:#2f3e46;--f-img:#84a98c;--f-ins:#52796f;--f-oth:#cad2c5;--hat:#354f52;--shirt:#84a98c;--band:#cad2c5}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 'Hanken Grotesk',system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--claude);outline-offset:2px}
+.serif{font-family:Newsreader,Georgia,serif;font-weight:500;letter-spacing:-.01em}
+.mono{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1120px;margin:auto;padding:0 max(4vw,18px)}
+.v{display:none}.v.on{display:block}
+svg.px{shape-rendering:crispEdges;display:block;flex:none}
+[data-wren],[data-hat],.wrenrow>svg{flex:none}
+.px .eye{animation:blink 4s infinite}@keyframes blink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes inn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.new{animation:inn .3s ease-out}
+@media (prefers-reduced-motion:reduce){.new,.px .eye{animation:none}html{scroll-behavior:auto}}
+
+/* switcher */
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:20;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;width:40px;height:40px;font-size:18px}
+.sw span{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body{padding-bottom:80px}
+
+/* nav + footer */
+.nav{background:var(--surface);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:22px;min-height:64px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.02em;text-decoration:none}
+.nav nav{display:flex;gap:18px;font-size:15px;font-weight:600;color:var(--muted);margin-left:auto;flex-wrap:wrap}
+.nav nav a{text-decoration:none}.nav nav a:hover{color:var(--ink)}
+.nav .cta{background:var(--you);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-weight:700;font-size:15px;text-decoration:none}
+@media (max-width:760px){.nav nav{display:none}.nav .cta{margin-left:auto}}
+footer{border-top:1px solid var(--line);margin-top:72px;padding:28px 0;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:space-between}
+
+/* shared bits */
+.eyebrow{font:500 13px 'IBM Plex Mono',monospace;color:var(--you);letter-spacing:.02em}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:13px 20px;font-weight:700;text-decoration:none;border:1.5px solid var(--ink);background:var(--surface)}
+.btn.p{background:var(--you);border-color:var(--you);color:#fff}
+.btn:hover{filter:brightness(.96)}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--muted)}
+.note b{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.stamp{display:inline-flex;gap:6px;align-items:center;font:500 13px 'IBM Plex Mono',monospace;color:var(--you);background:var(--good-bg);border:1px solid var(--line2);border-radius:99px;padding:3px 10px}
+.stamp:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--you)}
+h1,h2,h3{margin:0;line-height:1.12}
+.sec{margin-top:72px}
+.sec>h2{font-size:clamp(26px,3vw,34px);margin-bottom:8px}
+.sec>p.lead{color:var(--muted);margin:0 0 24px;max-width:62ch}
+.tiles{display:flex;gap:3px}.tiles i{width:12px;height:12px;border-radius:3px;display:block}
+
+/* goal cards */
+.goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.goal{display:flex;flex-direction:column;gap:10px;padding:20px;text-decoration:none;transition:border-color .15s,transform .15s}
+.goal:hover{border-color:var(--line2);transform:translateY(-2px)}
+.goal .n{font:500 13px 'IBM Plex Mono',monospace;color:var(--muted)}
+.goal h3{font-size:21px}
+.goal p{margin:0;color:var(--muted);font-size:15px}
+.goal .cap{margin-top:auto;font-size:14px;background:var(--bg);border-radius:10px;padding:8px 10px}
+.goal .cap b{color:var(--you)}
+.goal .for{font-size:13px;font-weight:700;color:var(--you)}
+
+/* how it works */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.how{grid-template-columns:1fr}}
+.how .card{padding:20px}
+.how .k{font:600 40px Newsreader,serif;color:var(--line2);line-height:1}
+.how h3{font-size:19px;margin:8px 0 6px}
+.how p{margin:0;color:var(--muted);font-size:15px}
+
+/* A: hero */
+.heroA{padding:72px 0 8px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:40px;align-items:center}
+@media (max-width:860px){.heroA{grid-template-columns:1fr;padding-top:44px}}
+.heroA h1{font-size:clamp(40px,5.6vw,66px)}
+.heroA p{font-size:19px;color:var(--muted);max-width:52ch;margin:18px 0 26px}
+.acts{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.mini{padding:16px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.mini .b{padding:9px 13px;border-radius:14px;max-width:90%}
+.mini .b.y{align-self:flex-end;background:var(--you);color:#fff;border-bottom-right-radius:4px}
+.mini .b.c{background:var(--bg);border-bottom-left-radius:4px}
+.mini .w{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px;color:var(--muted);font-size:14px}
+.capmap{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:760px){.capmap{grid-template-columns:repeat(2,1fr)}}
+.capmap div{border:1.5px dashed var(--line2);border-radius:12px;padding:12px;font-size:14px;color:var(--muted);min-height:92px}
+.capmap div.got{border-style:solid;background:var(--good-bg);color:var(--ink)}
+.capmap div span{display:block;font:500 12px 'IBM Plex Mono',monospace;margin-bottom:4px}
+.adv{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.adv{grid-template-columns:1fr}}
+.adv .card{padding:18px;background:var(--ink);color:#e9eeea;border:0}
+.adv .card p{color:#b9c6c4;margin:6px 0 0;font-size:15px}
+
+/* B: play hero */
+.heroB{padding:56px 0 0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:start}
+@media (max-width:900px){.heroB{grid-template-columns:1fr;padding-top:36px}}
+.heroB h1{font-size:clamp(36px,4.6vw,56px)}
+.heroB>div>p{font-size:18px;color:var(--muted);margin:16px 0 22px}
+.play{overflow:hidden;box-shadow:0 18px 40px -24px rgba(47,62,70,.45)}
+.play .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.play .bar b{color:var(--ink)}
+.play .in{display:grid;grid-template-columns:minmax(0,1fr) 200px}
+@media (max-width:560px){.play .in{grid-template-columns:1fr}.play .side{display:none}}
+.play .chat{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:340px}
+.play .side{border-left:1px solid var(--line);background:#f4f6f3;padding:14px;display:flex;flex-direction:column;gap:12px;font-size:14px}
+.bub{padding:10px 14px;border-radius:16px;max-width:88%;font-size:15px;line-height:1.45}
+.bub.y{align-self:flex-end;background:var(--you);color:#fff;border-bottom-right-radius:4px}
+.bub.c{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.ask{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
+.ask .q{font-weight:700;margin-bottom:8px}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line2);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:15px}
+.opt:hover{background:var(--good-bg)}
+.fb{border-radius:12px;padding:10px 12px;font-size:14px;border:1px solid var(--line)}
+.fb.good{background:var(--good-bg)}.fb.ok{background:var(--ok-bg)}.fb.risk{background:var(--risk-bg);border-color:var(--risk)}
+.fb b{display:block}
+.folder{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.folder i{aspect-ratio:1;border-radius:3px;display:block}
+.wrenrow{display:flex;gap:10px;align-items:flex-start}
+.wrenrow .say{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.strip a{background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-weight:600;font-size:15px;text-decoration:none}
+.strip a:hover{border-color:var(--line2)}
+
+/* C: field guide */
+.heroC{padding:80px 0 20px;text-align:center}
+.heroC h1{font-size:clamp(44px,7vw,88px);font-family:Newsreader,serif;font-weight:500;letter-spacing:-.02em}
+.heroC h1 em{color:var(--you)}
+.heroC p{font-size:20px;color:var(--muted);max-width:56ch;margin:20px auto 28px}
+.heroC .acts{justify-content:center}
+.toc{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:48px;margin-top:64px}
+@media (max-width:860px){.toc{grid-template-columns:1fr}}
+.toc ol{list-style:none;margin:0;padding:0;border-top:2px solid var(--ink)}
+.toc li{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:16px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line)}
+.toc li .no{font:500 34px Newsreader,serif;color:var(--line2)}
+.toc li h3{font:500 26px Newsreader,serif}
+.toc li p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.toc li .t{font:500 13px 'IBM Plex Mono',monospace;color:var(--muted);white-space:nowrap}
+.toc .part{font:500 13px 'IBM Plex Mono',monospace;color:var(--you);margin:36px 0 8px}
+.toc .part:first-child{margin-top:0}
+.margin{position:sticky;top:24px;align-self:start;display:flex;flex-direction:column;gap:14px}
+.margin .card{padding:16px;font-size:15px}
+.margin .card h3{font-size:16px;margin-bottom:6px}
+.quote{font:italic 400 22px/1.4 Newsreader,serif;border-left:3px solid var(--line2);padding-left:16px;color:var(--ink)}
+
+/* lesson pages */
+.crumbs{font-size:14px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.crumbs a{text-decoration:none}.crumbs a:hover{text-decoration:underline}
+.lhead h1{font-size:clamp(34px,4.4vw,52px);margin:12px 0 14px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:15px;color:var(--muted)}
+.capline{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--you);border-radius:10px;padding:10px 14px;font-size:16px}
+.capline b{color:var(--you)}
+.prose{max-width:66ch;font-size:18px}
+.prose p{margin:0 0 14px}
+.player{margin:28px 0;overflow:hidden}
+.player .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.chap{display:flex;gap:4px;flex-wrap:wrap}.chap span{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--pill);color:var(--muted)}.chap span.on{background:var(--you);color:#fff}
+.player .in{display:grid;grid-template-columns:minmax(0,1fr) 280px;position:relative}
+@media (max-width:760px){.player .in{grid-template-columns:1fr}.player .side{display:none}}
+.player .chat{padding:20px;display:flex;flex-direction:column;gap:10px;min-height:300px;filter:saturate(.9)}
+.player .side{border-left:1px solid var(--line);background:#f4f6f3;padding:16px;display:flex;flex-direction:column;gap:14px;font-size:14px}
+.player .side h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.cover{position:absolute;inset:0;display:grid;place-items:center;background:rgba(238,241,236,.72);backdrop-filter:blur(2px)}
+.cover .inner{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 28px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 34px -22px rgba(47,62,70,.5);margin:16px}
+.cover .inner p{margin:0;color:var(--muted);max-width:40ch}
+.after{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.after{grid-template-columns:1fr}}
+.after .card{padding:20px}
+.after h3{font-size:20px;margin-bottom:10px}
+.notes{font:400 17px/1.5 Newsreader,serif;margin:0;padding-left:20px}
+.notes li{margin-bottom:6px}
+.prompt{font:14px/1.5 'IBM Plex Mono',monospace;background:var(--bg);border:1px dashed var(--line2);border-radius:10px;padding:12px;margin:10px 0}
+.copy{border:1.5px solid var(--ink);background:var(--surface);border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
+.next{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;margin-top:20px;text-decoration:none}
+.next .k{font-size:13px;color:var(--muted)}
+.next h3{font-size:20px}
+.lrail{display:grid;grid-template-columns:250px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.lrail{grid-template-columns:1fr}.rail{display:none}}
+.rail{position:sticky;top:20px;align-self:start;margin-top:28px;display:flex;flex-direction:column;gap:16px}
+.rail .card{padding:14px}
+.rail h4{margin:0 0 8px;font:500 12px 'IBM Plex Mono',monospace;color:var(--muted)}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rail li a{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;text-decoration:none;font-size:15px}
+.rail li a .d{width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center;font-size:11px;color:#fff}
+.rail li.done .d{background:var(--line2)}
+.rail li.on a{background:var(--good-bg);font-weight:700}
+.rail li.on .d{border-color:var(--you);background:var(--you)}
+.toggle{display:flex;gap:6px;font-size:14px;flex-wrap:wrap}
+.toggle span{border:1px solid var(--line);border-radius:99px;padding:4px 10px;background:var(--surface)}
+.toggle span.on{border-color:var(--you);color:var(--you);font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ===================== A: Start with a goal ===================== -->
+<section class="v" id="home-goals" data-name="A · Home: start with a goal">
+ <div class="nav"><div class="wrap"><a class="brand" href="#home-goals"><span data-hat="3"></span>Agentcraft</a><nav><a href="#">Foundations</a><a href="#">Advanced</a><a href="#">Your skills</a><a href="#">How it was built</a></nav><a class="cta" href="#lesson-focus">Start free</a></div></div>
+ <div class="wrap">
+  <div class="heroA">
+   <div>
+    <div class="eyebrow">An unofficial guide to Claude Code</div>
+    <h1 class="serif">Get real work done with Claude&nbsp;Code. No coding needed.</h1>
+    <p>Pick something you actually want done. You'll sit in the human's seat of a real session, make the calls, and see your files change. Then you try it yourself.</p>
+    <div class="acts"><a class="btn p" href="#lesson-focus">Start with lesson 1</a><a class="btn" href="#">I already use it: skip ahead</a></div>
+   </div>
+   <div class="card mini" aria-label="A moment from a lesson">
+    <div class="eyebrow">From lesson 2 · Sort and rename</div>
+    <div class="b y">My Downloads folder is a mess. Can you sort it into folders by type?</div>
+    <div class="b c">Sure. I'll look first and show you the plan before I move anything.</div>
+    <div class="folder" data-folder="40"></div>
+    <div class="w"><span data-wren="3"></span><span><b style="color:var(--ink)">Wren:</b> Good ask. One folder, one clear way to sort it.</span></div>
+   </div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">What do you want help with?</h2>
+   <p class="lead">Six goals, three short lessons each, about 10 to 15 minutes a lesson. Start with any one.</p>
+   <div class="goals" data-goals="a"></div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">How a lesson works</h2>
+   <p class="lead">No fake terminal. You learn from a real session, then do the real thing.</p>
+   <div class="how">
+    <div class="card"><div class="k">1</div><h3>Sit in the human's seat</h3><p>Pick or type what to say to Claude, and answer when it asks permission. Claude replies to you.</p></div>
+    <div class="card"><div class="k">2</div><h3>Watch your files change</h3><p>Beside the chat, see what the session is doing to the folder, sheet or page as it happens.</p></div>
+    <div class="card"><div class="k">3</div><h3>Try it yourself</h3><p>Run a ready prompt in your own Claude, then compare with what we got.</p></div>
+   </div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">What you'll be able to do</h2>
+   <p class="lead">Each goal gives you one real skill. Your progress stays in this browser. No account, no streaks.</p>
+   <div class="capmap" data-capmap></div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">Ready for code?</h2>
+   <p class="lead">The Advanced track is for people who build software, in the terminal.</p>
+   <div class="adv">
+    <div class="card"><b>From issue to pull request</b><p>Plan mode, CLAUDE.md for a codebase, tests and review.</p></div>
+    <div class="card"><b>Delegate a big change</b><p>Subagents and parallel work on a real refactor.</p></div>
+    <div class="card"><b>Automate your repo</b><p>Hooks, headless runs and GitHub Actions.</p></div>
+   </div>
+  </div>
+
+  <div class="sec note"><span data-wren="2"></span><span><b>Before you start:</b> you'll need a paid Claude plan (Pro or higher) to try things yourself. The lessons are free.</span></div>
+ </div>
+ <footer data-footer></footer>
+</section>
+
+<!-- ===================== B: Play the first minute ===================== -->
+<section class="v" id="home-play" data-name="B · Home: play the first minute">
+ <div class="nav"><div class="wrap"><a class="brand" href="#home-play"><span data-hat="3"></span>Agentcraft</a><nav><a href="#">Foundations</a><a href="#">Advanced</a><a href="#">Your skills</a><a href="#">How it was built</a></nav><a class="cta" href="#lesson-focus">Start free</a></div></div>
+ <div class="wrap">
+  <div class="heroB">
+   <div>
+    <div class="eyebrow">An unofficial guide to Claude Code</div>
+    <h1 class="serif">Learn Claude Code by taking the human's seat.</h1>
+    <p>This is a real session. Your Downloads folder is a mess, and Claude is ready to help. What would you say? Try it right here.</p>
+    <div class="note"><span data-wren="2"></span><span>No account needed. You'll need a paid Claude plan later, when you try things in your own Claude.</span></div>
+   </div>
+   <div class="card play" id="playB">
+    <div class="bar"><span><b>Sort and rename</b> · Tidy a messy folder</span><span class="chap"><span class="on">Ask</span><span>Check</span><span>Act</span></span></div>
+    <div class="in">
+     <div class="chat" id="chatB"></div>
+     <div class="side">
+      <div class="wrenrow"><span data-wren="3"></span><div class="say" id="wrenB">Hi, I'm Wren. You're in the human's chair. Ask Claude for help.</div></div>
+      <div><div style="font-weight:700;margin-bottom:6px">~/Downloads</div><div class="folder" data-folder="64"></div><div style="color:var(--muted);margin-top:6px">214 files, unsorted</div></div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">Or start from what you want done</h2>
+   <div class="strip" data-goals="strip"></div>
+  </div>
+
+  <div class="sec">
+   <div class="how">
+    <div class="card"><div class="k">1</div><h3>Real sessions</h3><p>Every replay is a real Claude Code session, checked against the current version.</p></div>
+    <div class="card"><div class="k">2</div><h3>Your calls</h3><p>You make the human's decisions. Wren tells you how your call compares with what really happened.</p></div>
+    <div class="card"><div class="k">3</div><h3>Then do it</h3><p>Each lesson ends with a ready prompt to run in your own Claude.</p></div>
+   </div>
+  </div>
+ </div>
+ <footer data-footer></footer>
+</section>
+
+<!-- ===================== C: Field guide ===================== -->
+<section class="v" id="home-guide" data-name="C · Home: field guide">
+ <div class="nav"><div class="wrap"><a class="brand" href="#home-guide"><span data-hat="3"></span>Agentcraft</a><nav><a href="#">Contents</a><a href="#">Your skills</a><a href="#">How it was built</a></nav><a class="cta" href="#lesson-focus">Begin</a></div></div>
+ <div class="wrap">
+  <div class="heroC">
+   <div class="eyebrow">An unofficial field guide to Claude Code</div>
+   <h1>Hand the work to Claude.<br><em>Keep the judgment.</em></h1>
+   <p>A calm, step-by-step guide for people who've never written code, and a few chapters for those who have. Every lesson is a real session you take part in.</p>
+   <div class="acts"><a class="btn p" href="#lesson-focus">Begin chapter 1</a><a class="btn" href="#">Take the skip check</a></div>
+   <div style="margin-top:22px"><span class="stamp">Every lesson checked against Claude Code 2.1.3xx · Nov 2026</span></div>
+  </div>
+  <div class="toc">
+   <div>
+    <div class="part">PART ONE · FOUNDATIONS · NO CODE</div>
+    <ol data-goals="toc"></ol>
+    <div class="part">PART TWO · ADVANCED · FOR DEVELOPERS</div>
+    <ol>
+     <li><span class="no">A1</span><div><h3>From issue to pull request</h3><p>Plan mode, CLAUDE.md for a codebase, tests and review.</p></div><span class="t">40 min</span></li>
+     <li><span class="no">A2</span><div><h3>Delegate a big change</h3><p>Subagents and parallel work on a refactor.</p></div><span class="t">40 min</span></li>
+     <li><span class="no">A3</span><div><h3>Automate your repo</h3><p>Hooks, headless runs and GitHub Actions.</p></div><span class="t">40 min</span></li>
+    </ol>
+   </div>
+   <aside class="margin">
+    <div class="card"><div class="wrenrow"><span data-wren="4"></span><div><h3>Your guide</h3>I'm Wren. I'll sit beside you in every lesson and tell you why the human made each call.</div></div></div>
+    <div class="card"><h3>What you need</h3>A paid Claude plan (Pro or higher) and the Claude desktop app. About 10 to 15 minutes a lesson.</div>
+    <div class="quote">"Claude can get this wrong. Here's how you check."</div>
+   </aside>
+  </div>
+ </div>
+ <footer data-footer></footer>
+</section>
+
+<!-- ===================== L1: Lesson, one column ===================== -->
+<section class="v" id="lesson-focus" data-name="L1 · Lesson: one column">
+ <div class="nav"><div class="wrap"><a class="brand" href="#home-goals"><span data-hat="3"></span>Agentcraft</a><nav><a href="#">Foundations</a><a href="#">Advanced</a><a href="#">Your skills</a></nav><a class="cta" href="#" style="background:var(--surface);color:var(--ink);border:1.5px solid var(--line2)">Lesson 2 of 3</a></div></div>
+ <div class="wrap" style="max-width:980px">
+  <div class="crumbs"><a href="#">Foundations</a>›<a href="#">1 · Tidy a messy folder</a>›<span>Lesson 2</span></div>
+  <div class="lhead" data-lhead></div>
+  <div class="prose" style="margin-top:22px"><p>Your Downloads folder has 214 files in it and you can't find anything. In this replay you take the human's seat in a real session: you ask, you set limits, and you decide what Claude is allowed to do.</p></div>
+  <div data-player></div>
+  <div class="after" data-after></div>
+  <a class="card next" href="#"><div><div class="k">Next in this goal</div><h3>Show me first, and undo</h3></div><span class="btn p">Next lesson</span></a>
+ </div>
+ <footer data-footer></footer>
+</section>
+
+<!-- ===================== L2: Lesson with rail ===================== -->
+<section class="v" id="lesson-rail" data-name="L2 · Lesson: with goal rail">
+ <div class="nav"><div class="wrap"><a class="brand" href="#home-goals"><span data-hat="3"></span>Agentcraft</a><nav><a href="#">Foundations</a><a href="#">Advanced</a><a href="#">Your skills</a></nav></div></div>
+ <div class="wrap lrail">
+  <aside class="rail">
+   <div class="card"><h4>GOAL 1 · TIDY A MESSY FOLDER</h4>
+    <ol>
+     <li class="done"><a href="#"><span class="d">✓</span>Get set up</a></li>
+     <li class="on"><a href="#"><span class="d"></span>Sort and rename files</a></li>
+     <li><a href="#"><span class="d"></span>Show me first, and undo</a></li>
+    </ol></div>
+   <div class="card" style="font-size:14px"><h4>THIS GOAL GIVES YOU</h4>You can now hand Claude a task on your files and safely undo it.</div>
+   <div class="card" style="font-size:14px"><h4>IN THIS LESSON</h4><div style="display:flex;flex-direction:column;gap:6px"><a href="#r-replay">Replay · 6 min</a><a href="#r-notes">Field notes</a><a href="#r-try">Try it yourself · 5 min</a></div></div>
+  </aside>
+  <main>
+   <div class="crumbs"><a href="#">Foundations</a>›<a href="#">1 · Tidy a messy folder</a>›<span>Lesson 2</span></div>
+   <div class="lhead" data-lhead></div>
+   <div class="prose" style="margin-top:22px"><p>Your Downloads folder has 214 files in it and you can't find anything. In this replay you take the human's seat in a real session: you ask, you set limits, and you decide what Claude is allowed to do.</p></div>
+   <div id="r-replay" data-player></div>
+   <div class="after" data-after></div>
+   <a class="card next" href="#"><div><div class="k">Next in this goal</div><h3>Show me first, and undo</h3></div><span class="btn p">Next lesson</span></a>
+  </main>
+ </div>
+ <footer data-footer></footer>
+</section>
+
+<div class="sw" role="toolbar" aria-label="Prototype variants"><button id="prev" aria-label="Previous variant">‹</button><span id="lab"></span><button id="next" aria-label="Next variant">›</button></div>
+
+<script>
+const GOALS=[
+ {t:'Tidy a messy folder',d:'Sort and rename files, see the plan first, undo anything.',c:'hand Claude a task on your files and safely undo it',f:'Everyone',ls:['Get set up','Sort and rename files','Show me first, and undo']},
+ {t:'Make sense of a spreadsheet',d:'Ask questions of your data, check the answers, share a page.',c:'get answers from a spreadsheet and check they’re right',f:'Knowledge workers',ls:['Ask questions of your data','Check Claude’s work','Turn it into a shareable page']},
+ {t:'Write in your own voice',d:'Teach Claude your house rules so drafts sound like you.',c:'give Claude rules it remembers every time',f:'Knowledge workers',ls:['Why Claude forgets','Write your house rules','Draft, review, refine']},
+ {t:'Build your first web page',d:'Describe it, build it, preview it, improve it one step at a time.',c:'build and change a web page without writing code',f:'Aspiring builders',ls:['Describe what you want','Build and preview','Improve it in small steps']},
+ {t:'Write a weekly report from your tools',d:'Connect Drive or Notion and pull it all into one report.',c:'connect your tools safely and report from them',f:'Knowledge workers',ls:['Connect your tools','Pull it into a report','Stay safe with connected tools']},
+ {t:'Put it on autopilot',d:'Save what works as a skill and run it on a schedule.',c:'turn a task into a skill that runs on its own',f:'Everyone',ls:['Save it as a skill','Run it on a schedule','Know your usage and costs']}];
+const $=(s,r=document)=>[...r.querySelectorAll(s)];
+const MAP=['....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+const PC={h:'#354f52',b:'#cad2c5',s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:'#84a98c',g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'};
+const draw=(rows,px,label)=>{let r='';rows.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'?' class="eye"':''}/>`}));return `<svg class="px" width="${12*px}" height="${rows.length*px}" viewBox="0 0 12 ${rows.length}" role="img" aria-label="${label}">${r}</svg>`};
+$('[data-wren]').forEach(e=>e.innerHTML=draw(MAP,+e.dataset.wren,'Wren, your coach'));
+$('[data-hat]').forEach(e=>e.innerHTML=draw(MAP.slice(0,3),+e.dataset.hat*1.5,'Agentcraft'));
+const FC=['--f-doc','--f-img','--f-img','--f-ins','--f-oth','--f-img','--f-doc','--f-oth'];
+$('[data-folder]').forEach(e=>{let h='';for(let i=0;i<+e.dataset.folder;i++)h+=`<i style="background:var(${FC[(i*7+i%3)%FC.length]})"></i>`;e.innerHTML=h});
+$('[data-goals=a]').forEach(e=>e.innerHTML=GOALS.map((g,i)=>`<a class="card goal" href="#lesson-focus"><span class="n">Goal ${i+1} · 3 lessons · ~40 min</span><h3>${g.t}</h3><p>${g.d}</p><span class="for">For: ${g.f}</span><div class="cap"><b>You can now</b> ${g.c}.</div></a>`).join(''));
+$('[data-goals=strip]').forEach(e=>e.innerHTML=GOALS.map(g=>`<a href="#lesson-focus">${g.t}</a>`).join(''));
+$('[data-goals=toc]').forEach(e=>e.innerHTML=GOALS.map((g,i)=>`<li><span class="no">${i+1}</span><div><h3>${g.t}</h3><p>${g.ls.join(' · ')}</p></div><span class="t">3 × 12 min</span></li>`).join(''));
+$('[data-capmap]').forEach(e=>e.innerHTML=GOALS.map((g,i)=>`<div class="${i===0?'got':''}"><span>${i===0?'GAINED':'GOAL '+(i+1)}</span>${g.c[0].toUpperCase()+g.c.slice(1)}</div>`).join(''));
+const LHEAD=`<h1 class="serif">Sort and rename files</h1><div class="meta"><span>About 12 minutes</span><span>Desktop app</span><span class="stamp">Checked with Claude Code 2.1.3xx · 24 Nov 2026</span></div><div class="capline"><b>After this lesson:</b> you can ask Claude to organise a folder, set limits, and check before anything moves.</div>`;
+$('[data-lhead]').forEach(e=>e.innerHTML=LHEAD);
+const PLAYER=`<div class="card player"><div class="bar"><span><b style="color:var(--ink)">Session replay</b> · you play the human</span><span class="chap"><span class="on">Ask</span><span>Limits</span><span>Check</span><span>Act</span><span>Undo</span></span></div>
+<div class="in"><div class="chat"><div class="bub y">My Downloads folder is a mess. Can you sort it into folders by type?</div><div class="bub c">Sure. I'll look through it first and show you the plan before I move anything.</div><div class="bub c">I found 214 files: documents, photos, installers and a few others.</div></div>
+<div class="side"><div><h4>Your coach</h4><div class="wrenrow">${draw(MAP,3,'Wren')}<div class="say">You're in the human's chair. I'll tell you how your calls compare.</div></div></div><div><h4>Your folder</h4><div class="folder">${Array.from({length:48},(_,i)=>`<i style="background:var(${FC[(i*7+i%3)%FC.length]})"></i>`).join('')}</div></div></div>
+<div class="cover"><div class="inner">${draw(MAP,4,'Wren')}<h3 class="serif" style="font-size:26px">Take the human's seat</h3><p>You'll make 3 calls in a real session. About 6 minutes. Nothing touches your own files.</p><a class="btn p" href="https://claude.ai/artifact/SMfbWrKxf3tEJT5z69u8GP" target="_blank" rel="noopener">Play the replay</a></div></div></div></div>`;
+$('[data-player]').forEach(e=>e.innerHTML=PLAYER);
+const AFTER=`<div class="card" id="r-notes"><h3 class="serif">Field notes</h3><ol class="notes"><li>Say which folder and how to sort it.</li><li>Set limits before anything moves.</li><li>"Show me the list first" costs ten seconds and catches mistakes.</li><li>You can always undo part of it.</li></ol><div style="font-size:14px;color:var(--muted);margin-top:10px">Unlocks after the replay. Shown here so you can see it.</div></div>
+<div class="card" id="r-try"><h3 class="serif">Try it yourself</h3><div style="font-size:15px;color:var(--muted)">Open a messy folder in the Claude desktop app and paste:</div><div class="prompt">Sort this folder into subfolders by file type. Don't touch anything with "tax" in the name. Show me the list before you move anything.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="copy" onclick="this.textContent='Copied'">Copy prompt</button><a class="copy" href="#" style="text-decoration:none">Compare with our result</a></div></div>`;
+$('[data-after]').forEach(e=>e.innerHTML=AFTER);
+$('[data-footer]').forEach(e=>e.innerHTML=`<div class="wrap"><span>Agentcraft is an independent learning site, not affiliated with or endorsed by Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.</span><span><a href="#">How it was built</a> · <a href="#">GitHub</a></span></div>`);
+
+/* B: a live first Decision pause */
+const OPTS=[
+ {t:'My Downloads folder is a mess. Can you sort it into folders by type?',g:'good',f:'One clear goal: which folder, and how to sort it. That’s exactly what the human wrote.',c:'Sure. I’ll look through it first and show you the plan before I move anything.'},
+ {t:'Clean up my computer.',g:'ok',f:'Too broad. Claude has to ask which folder and what “clean” means.',c:'Happy to help. Which folder should I start with, and what does “clean” mean to you?'},
+ {t:'Delete everything old in Downloads.',g:'risk',f:'Deleting is the hardest thing to undo. Sort first, decide on deleting later.',c:'Before I delete anything, how old is “old”? Shall I sort them first so you can decide?'}];
+const GL={good:'Good call',ok:'Works, but…',risk:'Risky'};
+const chatB=document.getElementById('chatB'),wrenB=document.getElementById('wrenB');
+function askB(){chatB.innerHTML=`<div class="bub c">Hi. I can see your Downloads folder. What would you like me to do?</div><div class="ask"><div class="q">What do you ask Claude?</div>${OPTS.map((o,i)=>`<button class="opt" data-i="${i}">${o.t}</button>`).join('')}</div>`;
+ $('.opt',chatB).forEach(b=>b.onclick=()=>pick(+b.dataset.i));}
+function pick(i){const o=OPTS[i];chatB.innerHTML=`<div class="bub c">Hi. I can see your Downloads folder. What would you like me to do?</div><div class="bub y new">${o.t}</div><div class="bub c new">${o.c}</div><div class="fb ${o.g} new"><b>${GL[o.g]}</b>${o.f}</div><div class="ask" style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn p" href="#lesson-focus">Continue this lesson</a><button class="btn" id="againB">Try another reply</button></div>`;
+ wrenB.textContent=o.g==='good'?'Nice. That’s what the human did too.':'Interesting choice. See how Claude had to ask? Try another, or carry on.';
+ document.getElementById('againB').onclick=askB;}
+askB();
+
+/* variant switcher */
+const VS=$('.v');let cur=0;
+function show(id){const i=Math.max(0,VS.findIndex(v=>v.id===id));cur=i;VS.forEach((v,j)=>v.classList.toggle('on',j===i));document.getElementById('lab').textContent=`${VS[i].dataset.name}  (${i+1}/${VS.length})`;}
+const go=d=>{cur=(cur+d+VS.length)%VS.length;location.hash=VS[cur].id};
+document.getElementById('prev').onclick=()=>go(-1);document.getElementById('next').onclick=()=>go(1);
+addEventListener('keydown',e=>{if(e.target.closest('input,textarea'))return;if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1)});
+addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(VS.some(v=>v.id===id)){show(id);scrollTo(0,0)}});
+show(location.hash.slice(1)||'home-goals');
+</script>
+</body>
+</html>
