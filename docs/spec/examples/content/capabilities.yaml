@@ -1,0 +1,7 @@
+# Every Capability, defined once. Lessons and Skip check questions refer to these ids.
+- id: delegate-file-task
+  text: hand Claude a task on your files and safely undo it
+  goal: 01-tidy-a-messy-folder
+- id: question-data
+  text: ask Claude questions about your data and check its answers
+  goal: 02-make-sense-of-a-spreadsheet

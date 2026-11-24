@@ -1,0 +1,136 @@
+# Sample Replay script, written from the final replay prototype (issue #9).
+world: folder
+start:
+  files: { documents: 61, images: 88, installers: 23, other: 42 }
+  protected: [tax-2025.pdf, tax-receipt-march.pdf, TAX_notes.docx]
+
+steps:
+  - guide: Hi, I'm Wren, your coach. You're in the human's chair. Watch your folder on the right. Ask Claude for help.
+
+  - you:
+      ask: What do you ask Claude?
+      real: My Downloads folder is a mess. Can you sort it into folders by type?
+      options:
+        - text: My Downloads folder is a mess. Can you sort it into folders by type?
+          grade: good
+          feedback: One clear Goal, the folder and how to sort it. That's exactly what the human wrote.
+        - text: Clean up my computer.
+          grade: ok
+          feedback: Too broad. Claude had to ask which folder and what "clean" means.
+          claude: Happy to help. Which folder should I start with, and what does "clean" mean to you?
+        - text: Delete everything old in Downloads.
+          grade: risk
+          feedback: Deleting is the hardest thing to undo. Sort first, decide on deleting later.
+          claude: Before I delete anything, how old is "old"? Shall I sort them first so you can decide?
+      typed:
+        - any: [delete, remove, erase, trash]
+          grade: risk
+          feedback: Deleting is the hardest thing to undo. Sort first, decide later.
+          claude: Before I delete anything, can we sort first? Deleted files are hard to get back.
+        - any: [download, downloads, folder]
+          grade: good
+          feedback: Clear Goal, a place and a way to sort. Nice.
+      fallback:
+        grade: ok
+        feedback: Claude needs to know which folder and how you want it sorted.
+        claude: Sure. Which folder, and how would you like it sorted?
+
+  - tool: { name: List files, text: "Looked at 214 files in Downloads: 61 PDFs, 88 images, 23 installers, 42 other." }
+  - world: looked
+  - claude: "My plan: make four folders (Documents, Photos, Installers, Other) and rename screenshots by date. Shall I go ahead?"
+  - world: planned
+  - guide: Claude looked first and asked before acting. Before you say yes, is there anything you'd hate to see moved?
+
+  - you:
+      ask: Your reply to the plan?
+      real: Leave anything with "tax" in the name exactly where it is.
+      options:
+        - text: Leave anything with "tax" in the name exactly where it is.
+          grade: good
+          feedback: You protected what matters before anything moved.
+        - text: Sounds good, go ahead.
+          grade: ok
+          feedback: Fine, but you gave Claude no limits. The human protected their tax files first.
+          claude: Got it. One check before I start, is there anything you don't want moved?
+      typed:
+        - any: [delete, duplicate, duplicates]
+          grade: risk
+          feedback: Adding deletes widens the risk. Keep the first task small.
+          claude: I can, but deleting is permanent. Shall I list them first?
+        - any: [tax, keep, leave, skip, except]
+          grade: good
+          feedback: You set a limit before anything moved. Good steering.
+      fallback:
+        grade: ok
+        feedback: You didn't protect anything. The human kept tax files where they were.
+        claude: Okay. Anything you'd like me to leave alone before I start?
+
+  - permission:
+      text: Claude wants to move 198 files into 4 new folders.
+      real: Show me the list first
+      options:
+        - text: Allow always
+          grade: risk
+          feedback: Claude would never ask again before moving files. Too much trust, too soon.
+          claude: Okay, I won't ask again before moving files in this session.
+        - text: Show me the list first
+          grade: good
+          feedback: Ten seconds of checking. Watch what it catches.
+        - text: Deny
+          grade: ok
+          feedback: Safe, but you lose the help. Asking to see the list is the middle path.
+          claude: No problem, I won't move anything. Want me to show you the list instead?
+
+  - you: { auto: Show me the list of files you'll move first. }
+  - claude: "Here's the list. I found 3 files with \"tax\" in the name in it and took them out."
+  - world: flagged
+  - guide: See the red outlines in your folder? Checking caught 3 tax files that would have moved.
+
+  - you:
+      ask: The list looks right. What now?
+      real: Looks right. Go ahead.
+      options:
+        - text: Looks right. Go ahead.
+          grade: good
+          feedback: You checked, then gave the go-ahead. Same as the human.
+        - text: Go ahead, and leave screenshots where they are too.
+          grade: good
+          feedback: Also fine, one more limit, stated clearly.
+      fallback: { grade: good, feedback: Claude has what it needs. }
+
+  - tool: { name: Move files, text: Moved 195 files into 4 folders. Nothing was deleted. }
+  - world: moved
+  - claude: Done. Documents 58, Photos 88, Installers 23, Other 26. The 3 tax files and 16 others are still in Downloads.
+  - guide: Look at Photos. You'd rather have photos sorted by year. Can you still change your mind?
+
+  - you:
+      ask: Say what you want instead.
+      real: Actually, undo the Photos part. I want photos sorted by year.
+      options:
+        - text: Actually, undo the Photos part. I want photos sorted by year.
+          grade: good
+          feedback: Changing your mind is normal. Claude can rewind just that part.
+        - text: Never mind, it's fine.
+          grade: ok
+          feedback: You can live with it, but you never have to. Rewind exists for this.
+          claude: Great. If you change your mind, I can undo any part of this.
+      typed:
+        - any: [undo, back, rewind, revert, year]
+          grade: good
+          feedback: Clear change of mind. Claude can rewind just that part.
+      fallback:
+        grade: ok
+        feedback: Saying "undo the Photos part" tells Claude exactly what to change.
+        claude: Sure. Which part would you like me to change?
+
+  - tool: { name: Rewind, text: Put 88 photos back where they were. }
+  - world: rewound
+  - end:
+      takeaways:
+        - Give one clear Goal in plain words.
+        - Let Claude look and plan before anything changes.
+        - Protect what matters, then ask to see the list.
+        - If you change your mind, rewind.
+      exercise:
+        intro: Open the Claude Code Desktop app on a copy of a messy folder and paste
+        prompt: Look at this folder and suggest how to sort it into folders by type. Don't move anything until I've seen the list.

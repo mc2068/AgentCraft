@@ -1,0 +1,9 @@
+- capability: delegate-file-task
+  question: Claude asks to move 40 files into new folders. What do you do?
+  options:
+    - text: Allow always, so it stops asking.
+      correct: false
+    - text: Ask to see the list of files first.
+      correct: true
+    - text: Deny, and do it by hand.
+      correct: false

@@ -69,6 +69,14 @@ _Avoid_: Transcript, demo, simulation, video
 A Learner message that differs from what the real human wrote. Claude answers it once in character, then the Session replay rejoins the real session.
 _Avoid_: Wrong answer, branch
 
+**Replay script**:
+The authored file behind a Session replay: the ordered steps, the Learner's options and typed-reply rules, Claude's replies, Guide lines and World states.
+_Avoid_: Transcript, script file, scenario
+
+**World**:
+The kind of thing a Live view shows changing (v1: folder, spreadsheet, document, web page). A Replay script names World states; the World draws them.
+_Avoid_: Sandbox, environment, simulation
+
 **Live view**:
 The panel beside a Session replay showing what the session is doing to the Learner's files or tools as it happens.
 _Avoid_: Preview, visualization
