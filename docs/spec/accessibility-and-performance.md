@@ -67,6 +67,7 @@ First-load JS per route, gzipped:
 | Lesson page | ≤ 200 kB, of which motion ≤ 35 kB |
 | Homepage, before the island | ≤ 120 kB |
 | Homepage island chunk (three.js + scene) | ≤ 170 kB extra, loaded after the page shows |
+| Analytics chunk (PostHog), every route | ≤ 135 kB extra, loaded when the browser is idle after the page shows ([analytics-and-feedback.md](analytics-and-feedback.md#loading-and-budget)) |
 
 ### When the 3D island loads
 
@@ -95,4 +96,4 @@ Every pull request runs these in GitHub Actions. Any failure blocks the merge.
 
 Before launch, and after any big change to the Player or homepage, the owner does one manual pass with a real screen reader (VoiceOver) using a short written checklist kept in `docs/`.
 
-Real-user speed data (field Core Web Vitals) is left to the analytics ticket.
+Real-user speed data (field Core Web Vitals) comes from PostHog's Web Vitals autocapture: see [analytics-and-feedback.md](analytics-and-feedback.md#real-visitor-speed-field-core-web-vitals).
