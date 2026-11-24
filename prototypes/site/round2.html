@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentcraft, combined homepage and lesson page (round 2)</title>
+<!-- PROTOTYPE, throwaway. Issue #8 round 2, after research note 010.
+     Homepage: B's playable first Decision pause as the hero, A's goal cards and Capability map below, C's serif voice and Verification stamp.
+     Lesson page: L2 goal rail on wide screens that folds away while the replay plays, L1 on phones.
+     Motion: CSS + Web Animations only (the real build would use Motion for React inside the replay island). Tokens from note 010 section 5.1.
+     Calm mode (bar or nav) and prefers-reduced-motion remove movement and keep short fades. Hashes: #home, #lesson. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;
+ --bg:#eef1ec;--surface:#fafbf9;--side:#f4f6f3;--ink:#2f3e46;--muted:#56696b;--line:#d5dcd1;--line2:#84a98c;--you:#52796f;--claude:#354f52;--hi:#cad2c5;--pill:#e1e7df;
+ --good-bg:#e3ebe4;--ok-bg:#f2f1e6;--ok-line:#cfc9a2;--risk-bg:#f5e7e4;--risk:#c8574f;
+ --f-doc:#2f3e46;--f-img:#84a98c;--f-ins:#52796f;--f-oth:#cad2c5;
+ --dur-press:120ms;--dur-small:180ms;--dur-medium:260ms;--dur-move:400ms;
+ --ease-out:cubic-bezier(.23,1,.32,1);--ease-io:cubic-bezier(.77,0,.175,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 'Hanken Grotesk',system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;transition:transform var(--dur-press) var(--ease-out),background-color var(--dur-small),border-color var(--dur-small),opacity var(--dur-small)}
+button:active:not(:disabled),.btn:active{transform:scale(.97)}
+:focus-visible{outline:3px solid var(--claude);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.12}
+.serif{font-family:Newsreader,Georgia,serif;font-weight:500;letter-spacing:-.01em}
+.mono{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1160px;margin:auto;padding:0 max(4vw,18px)}
+.view{display:none}.view.on{display:block}
+.eyebrow{font:500 13px 'IBM Plex Mono',monospace;color:var(--you);letter-spacing:.02em}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:12px 18px;font-weight:700;text-decoration:none;border:1.5px solid var(--ink);background:var(--surface);transition:transform var(--dur-press) var(--ease-out),filter var(--dur-small)}
+.btn.p{background:var(--you);border-color:var(--you);color:#fff}
+@media (hover:hover) and (pointer:fine){.btn:hover{filter:brightness(.95)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.stamp{display:inline-flex;gap:7px;align-items:center;font:500 13px 'IBM Plex Mono',monospace;color:var(--you);background:var(--good-bg);border:1px solid var(--line2);border-radius:99px;padding:3px 11px}
+.stamp:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--you)}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes blink{0%,95%,100%{opacity:1}97%{opacity:0}}
+@keyframes dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes sheet{to{transform:translateX(-100%)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fill{from{background-position:100% 0}to{background-position:0 0}}
+.in{animation:up var(--dur-small) var(--ease-out) both}
+
+/* nav */
+.nav{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.nav .wrap{display:flex;align-items:center;gap:20px;min-height:62px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.02em;text-decoration:none}
+.nav nav{display:flex;gap:18px;font-size:15px;font-weight:600;color:var(--muted);margin-left:auto}
+.nav nav a{text-decoration:none}
+.calmsw{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--muted);background:none;border:0;padding:6px}
+.calmsw .tr{width:34px;height:20px;border-radius:99px;background:var(--hi);position:relative;transition:background-color var(--dur-small)}
+.calmsw .tr:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform var(--dur-small) var(--ease-out)}
+.calmsw[aria-pressed=true] .tr{background:var(--you)}.calmsw[aria-pressed=true] .tr:after{transform:translateX(14px)}
+@media (max-width:820px){.nav nav{display:none}.calmsw{margin-left:auto}.calmsw .lbl{display:none}}
+footer{border-top:1px solid var(--line);margin-top:72px;padding:26px 0;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:space-between}
+.progress{position:fixed;top:0;left:0;right:0;height:3px;background:var(--you);transform-origin:0 50%;transform:scaleX(0);z-index:11;display:none}
+@supports (animation-timeline:scroll()){#lesson.on~.progress,.progress.show{display:block;animation:grow linear both;animation-timeline:scroll(root)}}
+@keyframes grow{to{transform:scaleX(1)}}
+
+/* Wren sprite */
+.wren{display:inline-block;overflow:hidden;flex:none;vertical-align:bottom}
+.wren svg{display:block;shape-rendering:crispEdges}
+.wren .eye{animation:blink 5s infinite}
+.wren.play svg{animation:sheet calc(var(--n)*120ms) steps(var(--n)) 1}
+
+/* chat + player */
+.player{overflow:hidden;box-shadow:0 18px 40px -26px rgba(47,62,70,.45)}
+.pbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.pbar b{color:var(--ink)}
+.dots{display:flex;gap:6px;align-items:center}
+.dots span{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.dots i{display:block;width:8px;height:8px;border-radius:99px;background:var(--hi);transition:width var(--dur-medium) var(--ease-out),background-color var(--dur-small)}
+.dots span.on i{width:22px;background:var(--you)}.dots span.done i{background:var(--line2)}
+.dots span:not(.on) em{display:none}.dots em{font-style:normal}
+.pin{display:grid;grid-template-columns:minmax(0,1fr) 290px}
+.chatcol{display:flex;flex-direction:column;min-height:460px;max-height:620px}
+.log{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.who{font-size:12px;font-weight:700;color:var(--muted);margin:2px 0 -6px}
+.who.r{align-self:flex-end}
+.bub{padding:10px 14px;border-radius:16px;max-width:86%;font-size:16px;line-height:1.45;transition:background-color .6s,box-shadow .6s}
+.bub.y{align-self:flex-end;background:var(--you);color:#fff;border-bottom-right-radius:4px}
+.bub.c{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.ghost{align-self:flex-end;background:transparent;color:var(--you);border:1.5px dashed var(--you)}
+.bub.hl{box-shadow:0 0 0 4px var(--hi)}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;border-bottom-left-radius:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:dot 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+.typing.txt{font-size:14px;color:var(--muted)}
+.tool{align-self:flex-start;font:13px/1.4 'IBM Plex Mono',monospace;background:var(--surface);border:1px dashed var(--line2);border-radius:8px;padding:8px 12px;max-width:86%}
+.tool b{font-weight:500;color:var(--you)}
+.rejoin{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--muted);margin:4px 0}
+.rejoin:before,.rejoin:after{content:"";flex:1;height:1px;background:var(--line)}
+.dock{border-top:1px solid var(--line);background:var(--surface);padding:14px 18px 16px}
+.dock:empty{display:none}
+.dock .q{font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px}
+.dock .q small{font-weight:500;color:var(--muted);font-size:13px}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line2);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:15px}
+@media (hover:hover) and (pointer:fine){.opt:hover{background:var(--good-bg)}}
+.opt.stag{animation:up var(--dur-small) var(--ease-out) both;animation-delay:calc(var(--i)*40ms)}
+.typed{display:flex;gap:8px;margin-top:10px}
+.typed input{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+.typed button{border:0;background:var(--ink);color:#fff;border-radius:12px;padding:0 16px;font-weight:700}
+.perm{border:2px solid var(--ink);border-radius:14px;padding:14px;background:var(--surface);animation:rise var(--dur-medium) var(--ease-drawer) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.perm .t{font-weight:700}.perm .s{font-size:14px;color:var(--muted)}
+.perm .bs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pb{border:1.5px solid var(--ink);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:44px;font-weight:700}
+@media (hover:hover) and (pointer:fine){.pb:hover{background:var(--hi)}}
+.side{border-left:1px solid var(--line);background:var(--side);padding:14px;display:flex;flex-direction:column;gap:14px;font-size:14px}
+.side h4{margin:0 0 6px;font:500 12px 'IBM Plex Mono',monospace;color:var(--muted);display:flex;justify-content:space-between}
+.coach{display:flex;gap:10px;align-items:flex-start}
+.say{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 11px;line-height:1.45}
+.say.good{background:var(--good-bg);border-color:var(--line2)}.say.ok{background:var(--ok-bg);border-color:var(--ok-line)}.say.risk{background:var(--risk-bg);border-color:var(--risk)}
+.say b{display:block;font-size:13px}
+.say.swap{animation:up var(--dur-small) var(--ease-out) both}
+/* folder world */
+.world .path{font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between}
+.world .path span{font-weight:500;color:var(--muted)}
+.loose{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;min-height:22px}
+.tile{display:block;aspect-ratio:1;border-radius:4px;transition:opacity var(--dur-medium),box-shadow var(--dur-small)}
+.tile.doc{background:var(--f-doc)}.tile.img{background:var(--f-img)}.tile.ins{background:var(--f-ins)}.tile.oth{background:var(--f-oth)}
+.world.unseen .tile{opacity:.45}
+.tile.flag{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--risk)}
+.folders{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.world.moved .folders{display:grid}
+.fold{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px}
+.fold .fn{font-size:12px;font-weight:700;display:flex;justify-content:space-between;margin-bottom:5px}
+.fold .fn span{font:500 12px 'IBM Plex Mono',monospace;color:var(--muted)}
+.fold .g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;min-height:14px}
+.wstat{margin-top:8px;color:var(--muted)}
+/* capability unlock */
+.unlock{align-self:stretch;display:flex;gap:14px;align-items:center;background:var(--good-bg);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;margin-top:6px}
+.unlock svg path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw var(--dur-move) var(--ease-out) .15s forwards}
+.unlock b{display:block;font:500 20px Newsreader,serif}
+.unlock .k{font:500 12px 'IBM Plex Mono',monospace;color:var(--you)}
+
+/* ---------- HOME ---------- */
+.hero{padding:52px 0 0;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:44px;align-items:start}
+@media (max-width:980px){.hero{grid-template-columns:1fr;padding-top:32px;gap:28px}}
+.hero h1{font-size:clamp(38px,4.8vw,60px)}
+.hero p.lead{font-size:18px;color:var(--muted);margin:16px 0 18px;max-width:46ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px;color:var(--muted)}
+.hero .player .pin{grid-template-columns:minmax(0,1fr) 220px}
+.hero .chatcol{min-height:420px}
+@media (max-width:620px){.hero .player .pin{grid-template-columns:1fr}.hero .side{border-left:0;border-top:1px solid var(--line);order:-1;flex-direction:row;align-items:flex-start}.hero .side .world{display:none}}
+.after{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.doors{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-top:56px;align-items:stretch}
+@media (max-width:860px){.doors{grid-template-columns:1fr}}
+.door{text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.door b{font-size:18px}.door span{color:var(--muted);font-size:15px}
+.door[aria-pressed=true]{border-color:var(--you);background:var(--good-bg)}
+.door.code{justify-content:center;background:none;border-style:dashed;font-weight:700}
+.sec{margin-top:64px}
+.sec>h2{font-size:clamp(26px,3vw,36px);margin-bottom:8px}
+.sec>p.sub{color:var(--muted);margin:0 0 22px;max-width:62ch}
+.goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.goal{display:flex;flex-direction:column;gap:9px;padding:20px;text-decoration:none;text-align:left;transition:transform var(--dur-small) var(--ease-out),border-color var(--dur-small),opacity var(--dur-medium)}
+@media (hover:hover) and (pointer:fine){.goal:hover{transform:translateY(-2px);border-color:var(--line2)}}
+.goal .n{font:500 13px 'IBM Plex Mono',monospace;color:var(--muted)}
+.goal h3{font:500 25px Newsreader,serif}
+.goal p{margin:0;color:var(--muted);font-size:15px}
+.goal .tags{display:flex;gap:6px;flex-wrap:wrap}
+.goal .tags span{font-size:12px;font-weight:700;color:var(--you);background:var(--good-bg);border-radius:99px;padding:2px 9px}
+.goal .cap{margin-top:auto;font-size:14px;background:var(--bg);border-radius:10px;padding:8px 10px}
+.goal .cap b{color:var(--you)}
+.goals.filtered .goal.dim{opacity:.4}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.how{grid-template-columns:1fr}}
+.how .card{padding:20px}
+.how .k{font:500 42px Newsreader,serif;color:var(--line2);line-height:1}
+.how h3{font-size:19px;margin:8px 0 6px}.how p{margin:0;color:var(--muted);font-size:15px}
+.capmap{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:820px){.capmap{grid-template-columns:repeat(2,1fr)}}
+.capmap div{border:1.5px dashed var(--line2);border-radius:12px;padding:12px;font-size:14px;color:var(--muted);min-height:96px;background-size:200% 100%}
+.capmap div span{display:block;font:500 12px 'IBM Plex Mono',monospace;margin-bottom:4px}
+.capmap div.got{border-style:solid;color:var(--ink);background-image:linear-gradient(90deg,var(--good-bg) 50%,transparent 50%);background-position:0 0}
+.capmap div.got.new{animation:fill 700ms var(--ease-out) .2s both}
+.adv{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.adv{grid-template-columns:1fr}}
+.adv .card{padding:18px;background:var(--ink);color:#e9eeea;border:0}
+.adv .card p{color:#b9c6c4;margin:6px 0 0;font-size:15px}
+.plan{display:flex;gap:12px;align-items:center;padding:14px 16px;font-size:15px;color:var(--muted)}
+.plan b{color:var(--ink)}
+.quote{font:italic 400 24px/1.4 Newsreader,serif;border-left:3px solid var(--line2);padding-left:16px;margin:0;max-width:40ch}
+
+/* ---------- LESSON ---------- */
+.lesson{display:grid;grid-template-columns:250px minmax(0,1fr);gap:40px;transition:grid-template-columns var(--dur-medium) var(--ease-out),gap var(--dur-medium) var(--ease-out)}
+.rail{position:sticky;top:84px;align-self:start;margin-top:28px;display:flex;flex-direction:column;gap:14px;transition:opacity var(--dur-small)}
+.lesson.playing{grid-template-columns:0px minmax(0,1fr);gap:0}
+.lesson.playing .rail{opacity:0;visibility:hidden;pointer-events:none}
+@media (max-width:1099px){.lesson,.lesson.playing{grid-template-columns:1fr;gap:0}.rail{display:none}}
+.rail .card{padding:14px}
+.rail h4{margin:0 0 8px;font:500 12px 'IBM Plex Mono',monospace;color:var(--muted)}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail li a{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;text-decoration:none;font-size:15px}
+.rail .d{width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center;font-size:11px;color:#fff}
+.rail li.done .d{background:var(--line2)}.rail li.on a{background:var(--good-bg);font-weight:700}.rail li.on .d{border-color:var(--you);background:var(--you)}
+.crumbs{font-size:14px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.crumbs a{text-decoration:none}
+.lh h1{font:500 clamp(36px,4.6vw,56px)/1.08 Newsreader,serif;letter-spacing:-.015em;margin:10px 0 14px}
+.lmeta{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:15px;color:var(--muted)}
+.capline{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--you);border-radius:10px;padding:10px 14px}
+.capline b{color:var(--you)}
+.intro{max-width:66ch;font-size:18px;margin:20px 0 24px}
+.lp .pbar .tog{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700}
+@media (max-width:1099px){.lp .pbar .tog{display:none}}
+@media (max-width:760px){.lp .pin{grid-template-columns:1fr}.lp .side{border-left:0;border-bottom:1px solid var(--line);order:-1}.lp .chatcol{min-height:420px}}
+.start{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:36px 20px;margin:auto}
+.start p{margin:0;color:var(--muted);max-width:40ch}
+.rest{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+@media (max-width:760px){.rest{grid-template-columns:1fr}}
+.rest .card{padding:20px;transition:filter var(--dur-medium),opacity var(--dur-medium)}
+.rest.locked .notes-card{filter:blur(3px);opacity:.6}
+.rest h3{font:500 22px Newsreader,serif;margin-bottom:10px}
+.notes{font:400 17px/1.5 Newsreader,serif;margin:0;padding-left:20px}.notes li{margin-bottom:6px}
+.prompt{font:14px/1.5 'IBM Plex Mono',monospace;background:var(--bg);border:1px dashed var(--line2);border-radius:10px;padding:12px;margin:10px 0}
+.small{font-size:14px;color:var(--muted)}
+.copy{border:1.5px solid var(--ink);background:var(--surface);border-radius:8px;padding:6px 12px;font-weight:700;font-size:14px}
+.next{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;margin-top:16px;text-decoration:none}
+
+/* shared-element morph (View Transitions) */
+::view-transition-group(goal-title){animation-duration:var(--dur-move);animation-timing-function:var(--ease-io)}
+::view-transition-old(root){animation:120ms var(--ease-out) both fadeout}
+::view-transition-new(root){animation:180ms var(--ease-out) 60ms both fade}
+@keyframes fadeout{to{opacity:0}}
+
+/* prototype bar */
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:30;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;height:40px;padding:0 14px;font:600 14px system-ui,sans-serif;white-space:nowrap}
+.sw button[aria-pressed=true]{background:#fff;color:#111}
+
+/* Calm mode and reduced motion: no movement, short fades only */
+html.calm *,html.calm *:before,html.calm *:after{transition-property:opacity,background-color,border-color,color,box-shadow!important;transition-duration:150ms!important}
+html.calm .in,html.calm .opt.stag,html.calm .say.swap,html.calm .perm{animation:fade 150ms both!important;animation-delay:0s!important}
+html.calm .wren .eye,html.calm .typing i{animation:none!important}
+html.calm .wren.play svg{animation:none!important}
+html.calm .unlock svg path{animation:none!important;stroke-dashoffset:0}
+html.calm .capmap div.got.new{animation:fade 150ms both!important}
+html.calm button:active,html.calm .btn:active{transform:none!important}
+html.calm .lesson{transition:none!important}
+html.calm ::view-transition-group(*),html.calm ::view-transition-old(*),html.calm ::view-transition-new(*){animation-duration:0s!important}
+</style>
+</head>
+<body>
+<div class="nav"><div class="wrap">
+ <a class="brand" href="#home" data-go="home"><span data-hat></span>Agentcraft</a>
+ <nav><a href="#home" data-go="home">Foundations</a><a href="#home">Advanced</a><a href="#home">Your skills</a><a href="#home">How it was built</a></nav>
+ <button class="calmsw" id="calmNav" aria-pressed="false" title="Calm mode: less motion"><span class="lbl">Calm mode</span><span class="tr"></span></button>
+</div></div>
+
+<!-- ================= HOME ================= -->
+<section class="view" id="home">
+ <div class="wrap">
+  <div class="hero">
+   <div>
+    <div class="eyebrow">An unofficial field guide to Claude Code</div>
+    <h1 class="serif">Learn Claude Code by taking the human's seat.</h1>
+    <p class="lead">This is a real session. Your Downloads folder is a mess and Claude is ready to help. What would you say? Try it right here. Nothing touches your own files.</p>
+    <div class="meta"><span class="stamp">Every lesson checked with Claude Code 2.1.3xx · Nov 2026</span></div>
+    <div class="meta" style="margin-top:14px;flex-wrap:nowrap"><span data-wren="2"></span><span>Free. You'll need a paid Claude plan later, when you try things yourself.</span></div>
+   </div>
+   <div class="card player" id="heroPlayer"></div>
+  </div>
+
+  <div class="doors" role="group" aria-label="Who are you?">
+   <button class="door" data-p="kw" aria-pressed="false"><b>I work in documents and spreadsheets</b><span>Reports, data, writing, connected tools.</span></button>
+   <button class="door" data-p="ab" aria-pressed="false"><b>I want to build a site or tool</b><span>No coding background needed.</span></button>
+   <a class="door code" href="#home">I already code → take the skip check</a>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">What do you want help with?</h2>
+   <p class="sub">Six goals, three short lessons each, about 12 minutes a lesson. Start with any one.</p>
+   <div class="goals" id="goals"></div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">How a lesson works</h2>
+   <p class="sub">No fake terminal. You learn from a real session, then you do the real thing.</p>
+   <div class="how">
+    <div class="card"><div class="k">1</div><h3>Sit in the human's seat</h3><p>Pick or type what to say, and answer when Claude asks permission. Claude replies to you.</p></div>
+    <div class="card"><div class="k">2</div><h3>Watch your files change</h3><p>Beside the chat, see what the session does to your folder, sheet or page as it happens.</p></div>
+    <div class="card"><div class="k">3</div><h3>Try it yourself</h3><p>Run a ready prompt in your own Claude, then compare with what we got.</p></div>
+   </div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">What you'll be able to do</h2>
+   <p class="sub">Each goal gives you one real skill. Your progress stays in this browser. No account, no streaks.</p>
+   <div class="capmap" id="capmap"></div>
+  </div>
+
+  <div class="sec" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center" id="voice">
+   <blockquote class="quote">"Claude can get this wrong. Here's how you check." <span class="small" style="display:block;font:500 14px 'Hanken Grotesk';margin-top:8px">Wren, your guide in every lesson</span></blockquote>
+   <div class="card plan"><span data-wren="3"></span><span><b>Before you start:</b> the lessons are free. To try things yourself you'll need a paid Claude plan (Pro or higher) and the Claude desktop app.</span></div>
+  </div>
+
+  <div class="sec">
+   <h2 class="serif">Ready for code?</h2>
+   <p class="sub">The Advanced track is for people who build software, in the terminal.</p>
+   <div class="adv">
+    <div class="card"><b>From issue to pull request</b><p>Plan mode, CLAUDE.md for a codebase, tests and review.</p></div>
+    <div class="card"><b>Delegate a big change</b><p>Subagents and parallel work on a real refactor.</p></div>
+    <div class="card"><b>Automate your repo</b><p>Hooks, headless runs and GitHub Actions.</p></div>
+   </div>
+  </div>
+ </div>
+ <footer><div class="wrap"><span>Agentcraft is an independent learning site, not affiliated with or endorsed by Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.</span><span><a href="#home">How it was built</a> · <a href="#home">GitHub</a></span></div></footer>
+</section>
+
+<!-- ================= LESSON ================= -->
+<section class="view" id="lesson">
+ <div class="wrap lesson" id="lessonGrid">
+  <aside class="rail" aria-label="This goal">
+   <div class="card"><h4>GOAL 1 · TIDY A MESSY FOLDER</h4>
+    <ol><li class="done"><a href="#lesson"><span class="d">✓</span>Get set up</a></li><li class="on"><a href="#lesson"><span class="d"></span>Sort and rename files</a></li><li><a href="#lesson"><span class="d"></span>Show me first, and undo</a></li></ol></div>
+   <div class="card small"><h4>THIS GOAL GIVES YOU</h4>You can now hand Claude a task on your files and safely undo it.</div>
+   <div class="card small"><h4>IN THIS LESSON</h4><div style="display:flex;flex-direction:column;gap:6px"><a href="#r-replay" data-anchor>Replay · 6 min</a><a href="#r-notes" data-anchor>Field notes</a><a href="#r-try" data-anchor>Try it yourself · 5 min</a></div></div>
+  </aside>
+  <main>
+   <div class="crumbs"><a href="#home" data-go="home">Foundations</a>›<a href="#home" data-go="home">1 · Tidy a messy folder</a>›<span>Lesson 2</span></div>
+   <div class="lh"><h1 id="lessonTitle">Sort and rename files</h1>
+    <div class="lmeta"><span>About 12 minutes</span><span>Desktop app</span><span class="stamp">Checked with Claude Code 2.1.3xx · 24 Nov 2026</span></div>
+    <div class="capline"><b>After this lesson:</b> you can ask Claude to organise a folder, set limits, and check before anything moves.</div></div>
+   <p class="intro">Your Downloads folder is full and you can't find anything. In this replay you take the human's seat in a real session: you ask, you set limits, and you decide what Claude is allowed to do.</p>
+   <div class="card player lp" id="r-replay"></div>
+   <div class="rest locked" id="rest">
+    <div class="card notes-card" id="r-notes"><h3>Field notes</h3><ol class="notes"><li>Say which folder and how to sort it.</li><li>Set limits before anything moves.</li><li>"Show me the list first" costs ten seconds and catches mistakes.</li><li>Nothing was deleted, so every step can be undone.</li></ol><p class="small" id="notesNote">Unlocks when you finish the replay.</p></div>
+    <div class="card" id="r-try"><h3>Try it yourself</h3><div class="small">Open a messy folder in the Claude desktop app and paste:</div><div class="prompt">Sort this folder into subfolders by file type. Don't touch anything with "tax" in the name. Show me the list before you move anything.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="copy" id="copyBtn">Copy prompt</button><a class="copy" href="#lesson" style="text-decoration:none">Compare with our result</a></div></div>
+   </div>
+   <a class="card next" href="#lesson"><div><div class="small">Next in this goal</div><h3 class="serif" style="font-size:22px">Show me first, and undo</h3></div><span class="btn p">Next lesson</span></a>
+  </main>
+ </div>
+ <footer><div class="wrap"><span>Agentcraft is an independent learning site, not affiliated with or endorsed by Anthropic.</span><span><a href="#home" data-go="home">Home</a></span></div></footer>
+</section>
+<div class="progress" id="prog" aria-hidden="true"></div>
+
+<div class="sw" role="toolbar" aria-label="Prototype controls"><button data-go="home" id="swHome">Home</button><button data-go="lesson" id="swLesson">Lesson</button><button id="swCalm" aria-pressed="false">Calm mode</button><button id="swReset">Reset</button></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const root=document.documentElement;
+let calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const progress={got:new Set(),fresh:new Set()}; /* stands in for ProgressStore */
+
+/* ---------- Wren: sprite sheet frames, played with CSS steps() ---------- */
+const BASE=['............','....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+const PC={h:'#354f52',b:'#cad2c5',s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:'#84a98c',g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'};
+const shiftDown=(f,a,b)=>f.map((r,y)=>y>=a&&y<=b+1?(y===a?'............':f[y-1]):r);
+const shiftRight=(f,a,b)=>f.map((r,y)=>y>=a&&y<=b?'.'+r.slice(0,-1):r);
+const F={idle:BASE,talk:BASE.map((r,y)=>y===7?'....ssss....':r),nod:shiftDown(BASE,1,7),tilt:shiftRight(BASE,1,7),
+ tip:BASE.map((r,y)=>y===0?BASE[1]:y===1?BASE[2]:y===2?BASE[3]:y===3?'............':y===10?'.sccccgccc..':y===9?'..cccgcccs..':r)};
+const MOODS={idle:['idle'],talk:['idle','talk','idle','talk'],nod:['idle','nod','nod','idle','nod'],tilt:['idle','tilt','tilt','tilt'],tip:['idle','tip','tip','tip','tip']};
+function sheet(names,px){let r='';names.forEach((n,i)=>F[n].forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x+12*i}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'&&i===0?' class="eye"':''}/>`})));
+ return `<svg width="${12*px*names.length}" height="${16*px}" viewBox="0 0 ${12*names.length} 16" aria-hidden="true">${r}</svg>`}
+function wrenEl(px){return `<span class="wren" role="img" aria-label="Wren, your coach" data-px="${px}" style="width:${12*px}px;height:${16*px}px">${sheet(['idle'],px)}</span>`}
+function play(w,mood){if(!w)return;const px=+w.dataset.px,seq=MOODS[mood]||MOODS.idle;w.classList.remove('play');w.innerHTML=sheet(seq,px);w.style.setProperty('--n',seq.length);if(calm){w.innerHTML=sheet([seq[seq.length-1]==='idle'?seq[1]||'idle':seq[seq.length-1]],px);return}void w.offsetWidth;w.classList.add('play');
+ w.firstChild.addEventListener('animationend',()=>{w.classList.remove('play');w.innerHTML=sheet(['idle'],px)},{once:true})}
+$$('[data-wren]').forEach(e=>e.outerHTML=wrenEl(+e.dataset.wren));
+$$('[data-hat]').forEach(e=>{let r='';BASE.slice(1,4).forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"/>`}));e.innerHTML=`<svg width="40" height="10" viewBox="0 0 12 3" style="shape-rendering:crispEdges;display:block" aria-hidden="true">${r}</svg>`});
+
+/* ---------- Goals, doors, capability map ---------- */
+const GOALS=[
+ {t:'Tidy a messy folder',d:'Sort and rename files, see the plan first, undo anything.',c:'Hand Claude a task on your files and safely undo it',p:['kw','ab']},
+ {t:'Make sense of a spreadsheet',d:'Ask questions of your data, check the answers, share a page.',c:'Get answers from a spreadsheet and check they’re right',p:['kw']},
+ {t:'Write in your own voice',d:'Teach Claude your house rules so drafts sound like you.',c:'Give Claude rules it remembers every time',p:['kw']},
+ {t:'Build your first web page',d:'Describe it, build it, preview it, improve it in small steps.',c:'Build and change a web page without writing code',p:['ab']},
+ {t:'Write a weekly report from your tools',d:'Connect Drive or Notion and pull it all into one report.',c:'Connect your tools safely and report from them',p:['kw']},
+ {t:'Put it on autopilot',d:'Save what works as a skill and run it on a schedule.',c:'Turn a task into a skill that runs on its own',p:['kw','ab']}];
+const PN={kw:'Documents and data',ab:'Builders'};
+$('#goals').innerHTML=GOALS.map((g,i)=>`<a class="card goal" href="#lesson" data-goal="${i}" data-p="${g.p.join(' ')}"><span class="n">Goal ${i+1} · 3 lessons · ~40 min</span><h3${i===0?' id="goalTitle"':''}>${g.t}</h3><p>${g.d}</p><span class="tags">${g.p.map(p=>`<span>${PN[p]}</span>`).join('')}</span><div class="cap"><b>You can now:</b> ${g.c.toLowerCase()}.</div></a>`).join('');
+function renderCap(){$('#capmap').innerHTML=GOALS.map((g,i)=>{const got=progress.got.has(i),fresh=progress.fresh.has(i);return `<div class="${got?'got':''}${fresh?' new':''}"><span>${got?'YOU CAN NOW':'GOAL '+(i+1)}</span>${g.c}</div>`}).join('');progress.fresh.clear()}
+renderCap();
+$$('.door[data-p]').forEach(b=>b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';$$('.door[data-p]').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed',String(on));
+ $('#goals').classList.toggle('filtered',on);$$('.goal').forEach(g=>g.classList.toggle('dim',on&&!g.dataset.p.includes(b.dataset.p)));
+ if(on)$('#goals').scrollIntoView({behavior:calm?'auto':'smooth',block:'start'})});
+
+/* ---------- Replay script (from the content-model sample, shortened) ---------- */
+const CH=['Ask','Limits','Check','Act'];
+const S=[
+ {k:'wren',t:'Hi, I’m Wren. You’re in the human’s chair. Watch the folder on the right, and ask Claude for help.',mood:'talk',ch:0},
+ {k:'claude',t:'Hi. I can see your Downloads folder. What would you like me to do?',ch:0},
+ {k:'you',ch:0,ask:'What do you ask Claude?',real:'My Downloads folder is a mess. Can you sort it into folders by type?',opts:[
+  {t:'My Downloads folder is a mess. Can you sort it into folders by type?',g:'good',f:'One clear goal: which folder, and how to sort it. That’s what the human wrote.'},
+  {t:'Clean up my computer.',g:'ok',f:'Too broad. Claude has to ask which folder and what “clean” means.',c:'Happy to help. Which folder should I start with, and what does “clean” mean to you?'},
+  {t:'Delete everything old in Downloads.',g:'risk',f:'Deleting is the hardest thing to undo. Sort first, decide on deleting later.',c:'Before I delete anything, how old is “old”? Shall I sort first so you can decide?'}],
+  typed:[[/delete|remove|erase|trash/i,'risk','Deleting is the hardest thing to undo. Sort first, decide later.','Before I delete anything, can we sort first? Deleted files are hard to get back.'],[/sort|tidy|organi[sz]e|folder/i,'good','Clear goal. Claude knows what to do.'],[/./,'ok','Say which folder and how you want it sorted.','Sure. Which folder, and how should I sort it?']]},
+ {k:'world',s:'looked',ch:0},
+ {k:'claude',t:'I looked through it: 24 files. I’ll sort them into Documents, Photos, Installers and Other. Anything I should leave alone?',ch:1},
+ {k:'you',ch:1,ask:'Anything Claude should leave alone?',real:'Leave anything with “tax” in the name exactly where it is.',opts:[
+  {t:'Leave anything with “tax” in the name exactly where it is.',g:'good',f:'You set a limit before anything moved. Good steering.'},
+  {t:'No, go ahead.',g:'ok',f:'Fine for a test folder. The human protected their tax files first.',c:'Okay. I’ll plan the moves and ask before I touch anything.'}],
+  typed:[[/tax|keep|leave|skip|except|don'?t/i,'good','You set a limit before anything moved. Good steering.'],[/./,'ok','You didn’t protect anything. The human kept their tax files where they were.','Okay. Anything you’d like me to leave alone before I start?']]},
+ {k:'perm',ch:2,t:'Claude wants to move 24 files into 4 new folders.',s:'Move files · ~/Downloads',real:'Show me the list first',opts:[
+  {t:'Allow always',g:'risk',f:'Claude would never ask again before moving files. Too much trust, too soon.',c:'Okay, I won’t ask again before moving files in this session.'},
+  {t:'Show me the list first',g:'good',f:'Ten seconds of checking. Watch what it catches.'},
+  {t:'Deny',g:'ok',f:'Safe, but you lose the help. Asking for the list is the middle path.',c:'No problem, I won’t move anything. Want to see the list instead?'}]},
+ {k:'auto',t:'Show me the list of files you’ll move first.',ch:2},
+ {k:'claude',t:'Here’s the list. I found 3 files with “tax” in the name in it (TAX_notes.docx, tax-2025.pdf, tax-receipt-march.pdf) and took them out.',ch:2},
+ {k:'world',s:'flagged',ch:2},
+ {k:'wren',t:'See the red outlines? Checking caught 3 tax files that would have moved.',mood:'nod',ch:2},
+ {k:'you',ch:3,ask:'The list looks right. What now?',real:'Looks right. Go ahead.',opts:[
+  {t:'Looks right. Go ahead.',g:'good',f:'You checked, then gave the go-ahead. Same as the human.'},
+  {t:'Actually, delete the installers instead.',g:'risk',f:'Deleting skips the undo. Moving them first keeps every option open.',c:'I can, but deleted files are hard to get back. Shall I move them into a folder you can review first?'}]},
+ {k:'tool',t:'Moved 21 files into 4 folders. Nothing was deleted.',ch:3},
+ {k:'world',s:'moved',ch:3},
+ {k:'claude',t:'Done. Documents 4, Photos 7, Installers 3, Other 7. The 3 tax files are still in Downloads.',ch:3},
+ {k:'end',ch:3}];
+const GL={good:'Good call',ok:'Works, but…',risk:'Risky'};
+const TILES=['doc','img','oth','img','doc','ins','oth','img','doc','oth','img','ins','doc','oth','img','oth','doc','img','ins','oth','doc','img','oth','doc'];
+const TAX=new Set([4,12,20]);
+const FOLD=[['doc','Documents'],['img','Photos'],['ins','Installers'],['oth','Other']];
+
+/* ---------- Player ---------- */
+function Player(el,opts){
+ const hero=!!opts.hero;let i=0,timers=[],busy=false,dead=false,calls=[];
+ el.innerHTML=`<div class="pbar"><span><b>Sort and rename</b>${hero?' · Tidy a messy folder':' · you play the human'}</span><span class="dots">${CH.map((c,j)=>`<span data-ch="${j}"><i></i><em>${c}</em></span>`).join('')}${hero?'':'<button class="tog" type="button">Lesson list</button>'}</span></div>
+ <div class="pin"><div class="chatcol"><div class="log" role="log" aria-live="polite"></div><div class="dock"></div></div>
+ <div class="side"><div><h4>YOUR COACH</h4><div class="coach">${wrenEl(hero?3:4)}<div class="say" role="status"></div></div></div>
+ <div class="world unseen"><h4>LIVE VIEW</h4><div class="path">~/Downloads <span class="cnt">24 files</span></div><div class="loose">${TILES.map((t,j)=>`<i class="tile ${t}" data-j="${j}"></i>`).join('')}</div>
+ <div class="folders">${FOLD.map(([k,n])=>`<div class="fold" data-k="${k}"><div class="fn">${n}<span>0</span></div><div class="g"></div></div>`).join('')}</div><div class="wstat">Not looked at yet</div></div></div></div>`;
+ const log=$('.log',el),dock=$('.dock',el),say=$('.say',el),wren=$('.coach .wren',el),world=$('.world',el);
+ const tog=$('.tog',el);if(tog)tog.onclick=()=>$('#lessonGrid').classList.toggle('playing');
+ const wait=ms=>new Promise(r=>timers.push(setTimeout(r,instant?0:calm?Math.min(ms,250):ms)));let instant=false;
+ const scroll=()=>{log.scrollTop=log.scrollHeight};
+ function add(html,cls){const d=document.createElement('div');d.className=cls+(instant?'':' in');d.innerHTML=html;log.appendChild(d);scroll();return d}
+ function coach(t,g,mood){say.className='say'+(g?' '+g:'')+(instant?'':' swap');say.innerHTML=g?`<b>${GL[g]}</b>${esc(t)}`:esc(t);if(!instant)play(wren,mood||(g==='good'?'nod':g?'tilt':'talk'))}
+ function dots(ch){$$('.dots>span',el).forEach((d,j)=>{d.classList.toggle('on',j===ch);d.classList.toggle('done',j<ch)})}
+ async function claude(t){if(!instant){const ty=add(calm?'Claude is replying…':'<i></i><i></i><i></i>','typing'+(calm?' txt':''));await wait(700+Math.min(t.length*8,700));ty.remove()}
+  add(esc(t),'bub c')}
+ function setWorld(s){const loose=$('.loose',world),tiles=$$('.tile',world),stat=$('.wstat',world);
+  if(s==='looked'){world.classList.remove('unseen');stat.textContent='Claude looked: 24 files, unsorted'}
+  if(s==='flagged'){tiles.forEach(t=>t.classList.toggle('flag',TAX.has(+t.dataset.j)));stat.textContent='3 tax files taken out of the plan'}
+  if(s==='moved'){world.classList.add('moved');const movers=tiles.filter(t=>!TAX.has(+t.dataset.j));
+   const first=new Map(movers.map(t=>[t,t.getBoundingClientRect()]));
+   movers.forEach(t=>$(`.fold[data-k="${TILES[+t.dataset.j]}"] .g`,world).appendChild(t));
+   FOLD.forEach(([k])=>{const f=$(`.fold[data-k="${k}"]`,world);f.querySelector('.fn span').textContent=$$('.tile',f).length});
+   $('.cnt',world).textContent='3 files + 4 folders';stat.textContent='21 moved. Nothing deleted.';
+   if(instant)return;
+   if(calm){$$('.folders,.loose',world).forEach(x=>x.animate([{opacity:0},{opacity:1}],{duration:150}));return}
+   $$('.fold',world).forEach((f,j)=>f.animate([{opacity:0},{opacity:1}],{duration:180,delay:j*40,easing:'ease-out',fill:'backwards'}));
+   movers.forEach((t,j)=>{const a=first.get(t),b=t.getBoundingClientRect();t.animate([{transform:`translate(${a.left-b.left}px,${a.top-b.top}px) scale(${a.width/b.width})`},{transform:'none'}],{duration:400,easing:'cubic-bezier(.77,0,.175,1)',delay:j*15,fill:'backwards'})})}}
+ function rejoin(real,perm){add('Back to the real session','rejoin');add(perm?'The human chose: '+esc(real):esc(real),perm?'tool':'bub ghost')}
+ function judge(st,text){for(const [re,g,f,c] of st.typed)if(re.test(text))return {t:text,g,f,c};}
+ function showPause(st){const isPerm=st.k==='perm';
+  if(isPerm){dock.innerHTML=`<div class="perm" role="group" aria-label="Permission request"><div class="t">${esc(st.t)}</div><div class="s">${esc(st.s)} · Claude is asking. What would you do?</div><div class="bs">${st.opts.map((o,j)=>`<button class="pb" data-j="${j}">${esc(o.t)}</button>`).join('')}</div></div>`;
+   $('.pb',dock).focus({preventScroll:true})}
+  else{dock.innerHTML=`<div class="q">${esc(st.ask)}<small>Pick one, or type your own</small></div>${st.opts.map((o,j)=>`<button class="opt stag" style="--i:${j}" data-j="${j}">${esc(o.t)}</button>`).join('')}${st.typed?`<form class="typed"><input aria-label="Type your reply" placeholder="Or type what you'd say…"><button>Send</button></form>`:''}`}
+  $$('[data-j]',dock).forEach(b=>b.onclick=()=>choose(st,st.opts[+b.dataset.j]));
+  const f=$('form',dock);if(f)f.onsubmit=e=>{e.preventDefault();const v=$('input',f).value.trim();if(v)choose(st,judge(st,v))}}
+ async function choose(st,o){if(busy)return;busy=true;dock.innerHTML='';calls.push(o.g);if(hero)opts.onPick&&opts.onPick(o);
+  const isPerm=st.k==='perm';
+  const me=add(isPerm?'You chose: '+esc(o.t):esc(o.t),isPerm?'tool':'bub y');
+  if(!instant){me.classList.add('hl');setTimeout(()=>me.classList.remove('hl'),600)}
+  coach(o.f,o.g);
+  if(o.c){await claude(o.c);await wait(500);rejoin(st.real,isPerm)}
+  else if(o.t!==st.real&&!isPerm){rejoin(st.real,false)}
+  i++;busy=false;instant=false;
+  if(hero){await wait(300);dock.innerHTML=`<div class="after"><a class="btn p" href="#lesson" data-go="lesson" data-cont>Continue this lesson</a><button class="btn" type="button" data-again>Try another reply</button></div>`;
+   $('[data-again]',dock).onclick=()=>{opts.onPick&&opts.onPick(null);Player(el,opts)};$('[data-cont]',dock).onclick=e=>{e.preventDefault();go('lesson',true)};return}
+  run()}
+ async function run(){while(i<S.length&&!dead){const st=S[i];dots(st.ch);
+   if(st.k==='wren'){coach(st.t,null,st.mood);await wait(500)}
+   else if(st.k==='claude')await claude(st.t);
+   else if(st.k==='auto'){add(esc(st.t),'bub y');await wait(400)}
+   else if(st.k==='tool'){add(`<b>Move files</b> · ${esc(st.t)}`,'tool');await wait(300)}
+   else if(st.k==='world'){setWorld(st.s);await wait(st.s==='moved'?900:300)}
+   else if(st.k==='you'||st.k==='perm'){if(opts.preset&&i===2){const o=opts.preset;opts.preset=null;await choose(st,o);return}
+    instant=false;showPause(st);return}
+   else if(st.k==='end'){finish();return}
+   i++;await wait(250)}}
+ function finish(){dots(4);const good=calls.filter(g=>g==='good').length;
+  add(`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#fafbf9" stroke="#84a98c"/><path d="M12 20.5l5.5 5.5L28.5 14" fill="none" stroke="#52796f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><span class="k">SKILL GAINED · GOAL 1</span><b>You can now sort a folder with limits, and check before anything moves.</b><span class="small">${good} of ${calls.length} of your calls matched the human’s.</span></div>`,'unlock');
+  coach('That’s the whole session. Your field notes are below, then try it on your own folder.',null,'tip');
+  dock.innerHTML='';opts.onDone&&opts.onDone()}
+ i=0;
+ if(opts.preset){instant=true}
+ run();
+ return {stop(){dead=true;timers.forEach(clearTimeout)}};
+}
+
+/* ---------- pages ---------- */
+let heroPick=null,heroP,lessonP,started=false;
+function mountHero(){heroP&&heroP.stop();heroP=Player($('#heroPlayer'),{hero:true,onPick:o=>heroPick=o})}
+function lessonCover(){$('#r-replay').innerHTML=`<div class="start">${wrenEl(5)}<h3 class="serif" style="font-size:28px">Take the human's seat</h3><p>You'll make 4 calls in a real session. About 6 minutes. Nothing touches your own files.</p><button class="btn p" id="startBtn">Play the replay</button></div>`;
+ $('#startBtn').onclick=()=>startLesson()}
+function startLesson(){started=true;$('#lessonGrid').classList.add('playing');lessonP&&lessonP.stop();
+ lessonP=Player($('#r-replay'),{preset:heroPick,onDone(){$('#rest').classList.remove('locked');$('#notesNote').textContent='Unlocked. Keep these handy.';if(!progress.got.has(0)){progress.got.add(0);progress.fresh.add(0);renderCap()}setTimeout(()=>$('#lessonGrid').classList.remove('playing'),900)}});heroPick=null}
+function show(id){$$('.view').forEach(v=>v.classList.toggle('on',v.id===id));$('#prog').classList.toggle('show',id==='lesson');$('#swHome').setAttribute('aria-pressed',id==='home');$('#swLesson').setAttribute('aria-pressed',id==='lesson')}
+function go(id,cont){const title=$('#goalTitle'),lt=$('#lessonTitle');
+ const swap=()=>{show(id);scrollTo(0,0);if(id==='lesson'){if(cont&&heroPick)startLesson();else if(!started)lessonCover()}
+  if(id==='home')renderCap();
+  title.style.viewTransitionName=id==='home'?'goal-title':'';lt.style.viewTransitionName=id==='lesson'?'goal-title':''};
+ title.style.viewTransitionName=id==='lesson'&&!cont?'goal-title':'';lt.style.viewTransitionName=id==='home'?'goal-title':'';
+ if(history.replaceState)history.replaceState(null,'','#'+id);
+ if(document.startViewTransition&&!calm)document.startViewTransition(swap);else swap()}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-go],.goal,.next');if(!a||a.hasAttribute('data-cont'))return;
+ e.preventDefault();go(a.dataset.go||'lesson')});
+$('#copyBtn').onclick=e=>{e.target.textContent='Copied'};
+function setCalm(v){calm=v;root.classList.toggle('calm',v);$('#calmNav').setAttribute('aria-pressed',v);$('#swCalm').setAttribute('aria-pressed',v)}
+$('#calmNav').onclick=()=>setCalm(!calm);$('#swCalm').onclick=()=>setCalm(!calm);
+$('#swReset').onclick=()=>{progress.got.clear();started=false;heroPick=null;lessonP&&lessonP.stop();$('#rest').classList.add('locked');$('#notesNote').textContent='Unlocks when you finish the replay.';$('#lessonGrid').classList.remove('playing');mountHero();renderCap();lessonCover()};
+setCalm(calm);mountHero();lessonCover();
+const start=location.hash.slice(1)==='lesson'?'lesson':'home';show(start);
+</script>
+</body>
+</html>
