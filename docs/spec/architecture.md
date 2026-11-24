@@ -80,8 +80,9 @@ Pagefind builds a static search index after the site build; search runs in the b
 - TypeScript strict, ESLint, Prettier.
 - Vitest: engine tests, content validation tests, and a test that plays every Replay script's real path.
 - Playwright: one end-to-end test that plays a full Lesson in a real browser, on desktop and phone sizes.
+- Accessibility, Lighthouse, code-size and contrast checks: see [accessibility-and-performance.md](accessibility-and-performance.md#checks).
 - GitHub Actions runs all checks on every pull request; Vercel builds a preview per pull request; `main` deploys to production.
 
 ## Not decided here
 
-Analytics, accessibility and performance budgets, and the freshness job are still in the map's "Not yet specified" section.
+Analytics and the freshness job are still in the map's "Not yet specified" section. Accessibility and performance targets are in [accessibility-and-performance.md](accessibility-and-performance.md).
