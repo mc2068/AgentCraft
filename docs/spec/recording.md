@@ -95,7 +95,7 @@ When the real reply is too long to trim to one message, the owner writes a short
 
 The owner reviews the diff and the flagged pauses, then commits.
 
-Deciding *when* a Lesson needs a Re-take is still open (the map's "Freshness automation" item). It will likely use each Lesson's `docs` links and Verification stamp age. This spec only defines what a Re-take does.
+A Re-take (and a first Take) also saves the Markdown of each `docs` page in `take/docs/`, so the Freshness check can compare against it. *When* a Lesson needs a Re-take, and how a Re-take is started from GitHub Actions, is in [freshness.md](freshness.md).
 
 ## Tools in the repo
 

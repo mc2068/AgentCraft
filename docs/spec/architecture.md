@@ -17,6 +17,7 @@ lib/analytics/  typed track() + PostHog loader (analytics-and-feedback.md)
 styles/         design tokens (Sage Slate, fonts)
 tests/          Playwright end-to-end tests
 scripts/take/   take runner: records and re-takes Session replays (recording.md)
+scripts/freshness/  weekly Freshness check (freshness.md)
 .claude/        project skills, hooks and the lesson-reviewer subagent (proof-of-mastery.md)
 .github/        CI workflows, Claude lesson review, PR template
 ```
@@ -86,4 +87,4 @@ Pagefind builds a static search index after the site build; search runs in the b
 
 ## Not decided here
 
-The freshness job is still in the map's "Not yet specified" section. Analytics and feedback are in [analytics-and-feedback.md](analytics-and-feedback.md). Accessibility and performance targets are in [accessibility-and-performance.md](accessibility-and-performance.md).
+The Freshness check and Re-take workflows are in [freshness.md](freshness.md). Analytics and feedback are in [analytics-and-feedback.md](analytics-and-feedback.md). Accessibility and performance targets are in [accessibility-and-performance.md](accessibility-and-performance.md).

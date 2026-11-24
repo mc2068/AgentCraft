@@ -14,7 +14,7 @@ content/
       02-sort-and-rename/      # one folder per Lesson, numbered for order
         lesson.mdx             # frontmatter + short text around the replay
         replay.yaml            # the Replay script
-        take/                  # the Take behind it; see recording.md (ignored by the loader)
+        take/                  # the Take behind it and saved docs copies; see recording.md (ignored by the loader)
   advanced/
     ...
 ```
@@ -31,7 +31,8 @@ content/
 | `capability` | string | Id from `capabilities.yaml` |
 | `minutes` | number | Estimated time |
 | `verified` | `{ version, date }` | The Verification stamp; written by the take runner, not by hand ([recording.md](recording.md)) |
-| `docs` | URL list | Claude Code docs pages this Lesson depends on; used to flag stale Lessons |
+| `docs` | URL list | Claude Code docs pages this Lesson depends on; used by the Freshness check ([freshness.md](freshness.md)) |
+| `watch` | string list, optional | Watch words: commands, settings or feature words the Lesson teaches; the Freshness check looks for them in the Claude Code changelog |
 | `status` | `draft` \| `published` | Drafts are not built into the site |
 
 The MDX body is short: optional intro and outro text. The Session replay, field notes and Hands-on exercise are rendered from `replay.yaml` and the frontmatter.

@@ -85,6 +85,14 @@ _Avoid_: Fixture, sample data, sandbox
 Playing a Take's human messages again with the current Claude Code to bring a Lesson up to date.
 _Avoid_: Re-record, refresh, sync
 
+**Freshness check**:
+The weekly job that flags a Lesson as maybe out of date (a docs page it depends on changed, a Claude Code update mentions one of its Watch words, or its Verification stamp is over 90 days old) and opens an issue for it. It never re-records by itself.
+_Avoid_: Freshness job, staleness scan, update check
+
+**Watch word**:
+A command, setting or feature word a Lesson teaches, listed in its frontmatter, that the Freshness check looks for in Claude Code's changelog.
+_Avoid_: Keyword, tag
+
 **World**:
 The kind of thing a Live view shows changing (v1: folder, spreadsheet, document, web page). A Replay script names World states; the World draws them.
 _Avoid_: Sandbox, environment, simulation
