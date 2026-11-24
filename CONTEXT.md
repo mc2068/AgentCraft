@@ -130,3 +130,7 @@ _Avoid_: Dashboard, progress bar, streak
 **Verification stamp**:
 The note on a Lesson saying which Claude Code version it was checked against and on what date.
 _Avoid_: Last updated, version badge
+
+**Case study**:
+The site page that tells how Agentcraft was built with Claude Code, including one Session replay from the build. Aimed at people judging the owner's work, not at Learners.
+_Avoid_: About page, portfolio page, blog post

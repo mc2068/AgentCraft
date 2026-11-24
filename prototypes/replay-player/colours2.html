@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentcraft calm palettes</title>
+<!-- PROTOTYPE, throwaway. COLOUR EXPLORATION round 2 for issue #7: four calm Coolors palettes (Sage Slate, Fern, Harbor, Mist) on the locked replay player. Switch with the bar, the arrow keys, or #sage-slate / #fern / #harbor / #mist.
+     Base: final combined direction for the Session replay player:
+     F "Your seat" (learner plays the human) + D's live folder view + A+'s field-notes ending,
+     plus one in-character Claude reply when the learner goes off-script, then the session rejoins the real path. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday, warm, a real chat you take part in
+   IDEA you sit in the human's chair of a real session; a coach whispers beside you and you watch your folder change
+   PICTURE the conversation filling the screen, with the coach and the live folder in the side panel
+   COLOUR green-tinted paper var(--bg), pine var(--you) for you, white + survey blue var(--claude) for Claude, highlighter yellow for Wren, red pencil for risk; file-type colours in the folder
+   TYPE Hanken Grotesk for the chat, Newsreader for the field-notes ending, Plex Mono for tool cards
+   LAYOUT desktop: chat + 360px side panel (coach above folder). Phone: chat, then a tabbed strip (Coach | Your folder) above the composer */
+:root{color-scheme:light}
+:root,[data-pal=sage-slate]{--f-doc:#2f3e46;--f-img:#84a98c;--f-ins:#52796f;--f-oth:#cad2c5;--bg:#eef1ec;--surface:#fafbf9;--ink:#2f3e46;--muted:#56696b;--line:#d5dcd1;--line2:#84a98c;--you:#52796f;--you-ink:#fff;--claude:#354f52;--hi:#cad2c5;--good-bg:#e3ebe4;--good-line:#84a98c;--ok-bg:#f2f1e6;--ok-line:#cfc9a2;--risk-bg:#f5e7e4;--risk-line:#d6aaa2;--side:#f4f6f3;--soft:#eef1ec;--shadow:#cad2c5;--pill:#e1e7df;--pill-done:#cad2c5;--hat:#354f52;--shirt:#84a98c;--band:#cad2c5}
+[data-pal=fern]{--f-doc:#344e41;--f-img:#a3b18a;--f-ins:#588157;--f-oth:#dad7cd;--bg:#f0efea;--surface:#fbfbf8;--ink:#344e41;--muted:#5d6a5f;--line:#dad7cd;--line2:#a3b18a;--you:#3a5a40;--you-ink:#fff;--claude:#588157;--hi:#dad7cd;--good-bg:#e7ecdd;--good-line:#a3b18a;--ok-bg:#f3f0e1;--ok-line:#d3c99a;--risk-bg:#f4e6e2;--risk-line:#d4a79e;--side:#f6f5f1;--soft:#f0efea;--shadow:#dad7cd;--pill:#e6e4dc;--pill-done:#cfd6bf;--hat:#344e41;--shirt:#a3b18a;--band:#dad7cd}
+[data-pal=harbor]{--f-doc:#1d3557;--f-img:#a8dadc;--f-ins:#457b9d;--f-oth:#d8e7e1;--bg:#f1faee;--surface:#fbfdfa;--ink:#1d3557;--muted:#4f6378;--line:#d3e8e6;--line2:#a8dadc;--you:#1d3557;--you-ink:#fff;--claude:#457b9d;--hi:#a8dadc;--good-bg:#e1f3f1;--good-line:#a8dadc;--ok-bg:#f6f4e2;--ok-line:#d8cf9c;--risk-bg:#fbe5e7;--risk-line:#e9a0a7;--side:#f6fbf4;--soft:#eef7f2;--shadow:#d3e8e6;--pill:#e2f0ec;--pill-done:#c7e6e6;--hat:#1d3557;--shirt:#457b9d;--band:#a8dadc}
+[data-pal=mist]{--f-doc:#253237;--f-img:#9db4c0;--f-ins:#5c6b73;--f-oth:#c2dfe3;--bg:#eef5f6;--surface:#fbfdfd;--ink:#253237;--muted:#56656c;--line:#d2e6e9;--line2:#9db4c0;--you:#5c6b73;--you-ink:#fff;--claude:#253237;--hi:#c2dfe3;--good-bg:#e0eff1;--good-line:#9db4c0;--ok-bg:#f3f2e5;--ok-line:#d2cba2;--risk-bg:#f5e8e8;--risk-line:#d5aaaa;--side:#f4f9fa;--soft:#eaf3f4;--shadow:#c2dfe3;--pill:#e0ecee;--pill-done:#c2dfe3;--hat:#253237;--shirt:#9db4c0;--band:#e0fbfc}
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;width:40px;height:40px;font-size:18px}
+.sw span{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center}
+.sw i{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid #555}
+.comp{padding-bottom:70px!important}
+
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 'Hanken Grotesk',system-ui,sans-serif;overflow-x:clip}
+button,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--claude);outline-offset:2px}
+.proto{font:500 13px/1.3 'IBM Plex Mono',monospace;background:#111;color:#fff;padding:4px 8px;border-radius:4px;white-space:nowrap}
+svg.sprite{shape-rendering:crispEdges;display:block;flex:none}
+.sprite .eye{animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes inn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes ping{0%{box-shadow:0 0 0 0 var(--you)}100%{box-shadow:0 0 0 10px transparent}}
+.new{animation:inn .3s ease-out}
+@media (prefers-reduced-motion:reduce){.new,.sprite .eye,.typing i,.tabs .dotu{animation:none}*{transition:none!important}}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:12px max(3vw,16px);background:var(--surface);border-bottom:1px solid var(--line)}
+.top .k{font:500 13px 'IBM Plex Mono',monospace;color:var(--you)}
+.top h1{font-size:clamp(19px,2.3vw,24px);margin:0;line-height:1.15;letter-spacing:-.01em}
+.top .meta{font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.trail{display:flex;gap:4px;flex-wrap:wrap;grid-column:1/-1}
+.trail span{font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--pill);color:var(--muted)}
+.trail span.on{background:var(--you);color:var(--you-ink)}
+.trail span.done{background:var(--pill-done);color:var(--ink)}
+.tr{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line2);background:var(--surface);border-radius:8px;min-height:36px;padding:0 12px;font-weight:600;font-size:14px}
+.body{display:grid;grid-template-columns:minmax(0,1fr) 360px;overflow:hidden}
+.thread{overflow-y:auto;padding:20px max(3vw,16px) 16px;scroll-behavior:smooth}
+.col{max-width:740px;margin:auto;display:flex;flex-direction:column;gap:10px}
+.m{display:flex;gap:10px;align-items:flex-end;max-width:88%}
+.m .bb{padding:10px 14px;border-radius:16px;font-size:16px;line-height:1.45}
+.m.you{align-self:flex-end;flex-direction:row-reverse}
+.m.you .bb{background:var(--you);color:var(--you-ink);border-bottom-right-radius:4px}
+.m.ghost .bb{background:var(--surface);color:var(--you);border:1.5px dashed var(--you)}
+.m.claude .bb{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.av.c{background:var(--claude);color:#fff}
+.av.y{background:var(--ink);color:var(--surface)}
+.who{font-size:12px;font-weight:700;color:var(--muted);margin:0 0 -6px 42px}
+.who.r{align-self:flex-end;margin:0 42px -6px 0}
+.tool{align-self:flex-start;margin-left:42px;font:13px/1.4 'IBM Plex Mono',monospace;background:var(--surface);border:1px dashed var(--line2);border-radius:8px;padding:8px 12px;max-width:85%}
+.tool b{font-weight:500;color:var(--you)}
+.perm{align-self:stretch;margin-left:42px;background:var(--surface);border:2px solid var(--ink);border-radius:12px;padding:14px}
+.perm .t{font-weight:700}
+.perm .s{font-size:14px;color:var(--muted)}
+.perm .bs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pb{border:1.5px solid var(--ink);background:var(--surface);border-radius:8px;padding:8px 14px;min-height:44px;font-weight:700}
+.pb:hover:not(:disabled){background:var(--hi)}
+.pb.chosen{background:var(--ink);color:var(--surface)}
+.pb:disabled:not(.chosen){opacity:.35;cursor:default}
+.typing{align-self:flex-start;margin-left:42px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:dot 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+.fbk{align-self:flex-end;max-width:80%;font-size:14px;border-radius:10px;padding:8px 12px;margin-right:42px}
+.fbk.good{background:var(--good-bg);border:1px solid var(--good-line)}
+.fbk.ok{background:var(--ok-bg);border:1px solid var(--ok-line)}
+.fbk.risk{background:var(--risk-bg);border:1px solid var(--risk-line)}
+.fbk b{display:block;font-size:13px}
+.rejoin{align-self:stretch;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--muted)}
+.rejoin::before,.rejoin::after{content:"";flex:1;border-top:1px dashed var(--line2)}
+/* field notes ending */
+.notes{align-self:stretch;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;font-family:Newsreader,Georgia,serif}
+.notes section{background:var(--surface);border:1px solid var(--ink);border-radius:8px;padding:16px;box-shadow:4px 4px 0 var(--shadow)}
+.notes h2{font-size:22px;line-height:1.15;margin:0 0 8px;font-weight:600}
+.capb{background:var(--you);color:var(--you-ink);border-radius:6px;padding:10px 12px;font:600 16px/1.35 'Hanken Grotesk',sans-serif;margin-bottom:10px}
+.notes ol{margin:0;padding-left:20px;font-size:17px}
+.notes li{margin:3px 0}
+.notes .yours{font-size:15px;color:var(--muted);margin-top:10px}
+.notes pre{font:14px/1.5 'IBM Plex Mono',monospace;background:var(--soft);border:1px solid var(--shadow);border-radius:4px;padding:10px;white-space:pre-wrap;margin:8px 0}
+.notes p{margin:0;font-size:17px}
+.copy{border:0;background:var(--ink);color:var(--surface);border-radius:8px;padding:8px 14px;min-height:40px;font:700 15px 'Hanken Grotesk',sans-serif}
+.stamp{font:13px 'IBM Plex Mono',monospace;color:var(--muted);margin-top:10px}
+/* composer */
+.comp{background:var(--surface);border-top:1px solid var(--line);padding:10px max(3vw,16px) 14px}
+.comp .col{gap:8px}
+.ask{font-size:14px;font-weight:700;color:var(--you);display:flex;flex-wrap:wrap;gap:0 8px}
+.ask span{font-weight:500;color:var(--muted)}
+.chips{display:flex;flex-direction:column;gap:6px}
+.chip{text-align:left;border:1.5px solid var(--line2);background:var(--surface);border-radius:12px;padding:9px 12px;min-height:44px;font-size:15px}
+.chip:hover{border-color:var(--you);background:var(--bg)}
+.box{display:flex;gap:8px;align-items:flex-end}
+.box textarea{flex:1;resize:none;border:1.5px solid var(--line2);border-radius:12px;padding:10px 12px;font-size:16px;min-height:46px;max-height:120px;background:var(--surface)}
+.send{border:0;background:var(--you);color:var(--you-ink);border-radius:12px;min-height:46px;padding:0 18px;font-weight:700}
+.send:disabled{opacity:.4;cursor:default}
+.wait{font-size:14px;color:var(--muted);text-align:center}
+/* side panel */
+.side{border-left:1px solid var(--line);background:var(--side);display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:none}
+.pane{padding:16px 18px;overflow-y:auto}
+.pane h2{font-size:14px;margin:0 0 8px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.coachin{display:flex;gap:10px;align-items:flex-start}
+.cb{flex:1;background:var(--surface);border:1.5px solid var(--line2);border-radius:14px;padding:10px 12px;box-shadow:3px 3px 0 var(--shadow);font-size:15px}
+.cb b{display:block;font-size:13px}
+.mute{border:0;background:none;font-weight:600;font-size:13px;text-decoration:underline;color:var(--muted);padding:0;min-height:24px}
+#folderP{border-top:1px solid var(--line);flex:1}
+.loose{display:flex;flex-wrap:wrap;gap:5px;padding:10px;border:1.5px dashed #c5cbd5;border-radius:10px;min-height:56px}
+.lbl{font-weight:700;font-size:13px;margin:0 0 5px;display:flex;justify-content:space-between}
+.chipf{width:20px;height:25px;border-radius:2px 7px 2px 2px;background-color:var(--line);background-repeat:no-repeat;transition:background-color .4s}
+.t-doc{background-color:var(--f-doc)!important;}
+.t-img{background-color:var(--f-img)!important;}
+.t-ins{background-color:var(--f-ins)!important;}
+.t-oth{background-color:var(--f-oth)!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.chipf.tax{outline:2.5px solid #c8574f;outline-offset:1px}
+.dirs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.dir{border:1.5px solid #c5cbd5;border-radius:3px 10px 10px 10px;padding:8px;min-height:70px;background:var(--surface)}
+.dir.ghost{border-style:dashed;opacity:.6}
+.dir .cs{display:flex;flex-wrap:wrap;gap:3px}
+.dir .chipf{width:12px;height:15px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:15px;border-radius:2px 5px 2px 2px;margin-right:4px;vertical-align:-3px;background-repeat:no-repeat}
+.upd{font-size:12px;font-weight:700;color:var(--you)}
+@media(max-width:860px){
+ .body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+ .side{border-left:0;border-top:1px solid var(--line);max-height:190px}
+ .tabs{display:flex;gap:4px;padding:6px 12px 0}
+ .tabs button{border:0;background:none;font-weight:700;font-size:14px;padding:6px 10px;border-radius:8px 8px 0 0;color:var(--muted);position:relative;min-height:36px}
+ .tabs button.on{background:var(--surface);color:var(--ink);box-shadow:inset 0 -2px 0 var(--you)}
+ .tabs .dotu{position:absolute;top:6px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--you);animation:ping 1.2s infinite}
+ .pane{padding:8px 14px}
+ .pane.off{display:none}
+ #folderP{border-top:0}
+ .pane h2{display:none}
+ .coachin svg{width:36px;height:45px}
+ .notes{grid-template-columns:minmax(0,1fr)}
+ .chip{font-size:14px;padding:7px 10px;min-height:40px}
+ .top{grid-template-columns:minmax(0,1fr);padding:8px 14px;gap:4px}
+ .top .k,.top .meta,.proto{display:none}
+ .tr{position:absolute;top:8px;right:14px}
+ .top{position:relative}
+ .top h1{padding-right:110px;font-size:18px}
+ .side{max-height:170px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="top">
+  <div><div class="k">Foundations track · Goal 1, Tidy a messy folder · Lesson 2 of 3</div><h1>Your first task: sort and rename files</h1>
+   <div class="meta"><span>You’re the human in a real session. Claude answers you.</span><span>About 12 minutes</span><span>Verified with Claude Code 2.1.330 · 20 Nov 2026</span></div></div>
+  <div class="tr"><button class="btn" id="restart">Start over</button><span class="proto">Prototype · sample session</span></div>
+  <div class="trail" id="trail"></div>
+ </div>
+ <div class="body">
+  <div class="thread" id="thread"><div class="col" id="log"></div></div>
+  <aside class="side" aria-label="Coach and your folder">
+   <div class="tabs" role="tablist"><button id="tCoach" role="tab">Coach</button><button id="tFolder" role="tab">Your folder<span class="dotu" id="dotu" hidden></span></button></div>
+   <div class="pane" id="coachP"></div>
+   <div class="pane" id="folderP"></div>
+  </aside>
+ </div>
+ <div class="comp" id="comp"></div>
+</div>
+<nav class="sw" aria-label="Palette switcher"><button id="swp" aria-label="Previous palette">←</button><span id="swl"></span><button id="swn" aria-label="Next palette">→</button></nav>
+<script>
+{
+const CH=['Ask','Look','Plan','Check','Act','Undo'];
+const has=(t,re)=>re.test(t.toLowerCase());
+/* your turns branch: off-script answers get one in-character Claude reply, then the session rejoins the real path */
+const S=[
+ {k:'wren',ch:'Ask',t:'Hi, I’m Wren, your coach. You’re in the human’s chair. Your Downloads folder has 214 messy files: watch it on the right. Ask Claude for help.'},
+ {k:'you',ch:'Ask',ask:'What do you ask Claude?',real:'My Downloads folder is a mess. Can you sort it into folders by type?',opts:[
+   {t:'My Downloads folder is a mess. Can you sort it into folders by type?',g:'good',f:'One clear Goal: the folder and how to sort it. That’s exactly what the human wrote.'},
+   {t:'Clean up my computer.',g:'ok',f:'Too broad. Claude had to ask which folder and what “clean” means.',cr:'Happy to help. Which folder should I start with, and what does “clean” mean to you: sorting, renaming or deleting?'},
+   {t:'Delete everything old in Downloads.',g:'risk',f:'Deleting is the hardest thing to undo. Sort first, decide on deleting later.',cr:'Before I delete anything: how old is “old”? Deleted files are hard to get back. Shall I sort them first so you can decide?'}],
+  check:t=>has(t,/delete|remove|erase|trash/)?{g:'risk',f:'Deleting is the hardest thing to undo. Sort first, decide later.',cr:'Before I delete anything, can we sort first? Deleted files are hard to get back.'}:has(t,/download|folder/)&&has(t,/sort|organi[sz]e|tidy|type|date|group/)?{g:'good',f:'Clear Goal: a place and a way to sort. Nice.'}:{g:'ok',f:'Claude needs to know which folder and how you want it sorted.',cr:'Sure. Which folder, and how would you like it sorted?'}},
+ {k:'tool',ch:'Look',tool:'List files',t:'Looked at 214 files in Downloads: 61 PDFs, 88 images, 23 installers, 42 other.',fx:'looked'},
+ {k:'claude',ch:'Plan',t:'My plan: make four folders (Documents, Photos, Installers, Other) and rename screenshots by date. Shall I go ahead?',fx:'planned'},
+ {k:'wren',ch:'Plan',t:'Claude looked first and asked before acting. Before you say yes: is there anything in there you’d hate to see moved?'},
+ {k:'you',ch:'Plan',ask:'Your reply to the plan?',real:'Leave anything with “tax” in the name exactly where it is.',opts:[
+   {t:'Leave anything with “tax” in the name exactly where it is.',g:'good',f:'You protected what matters before anything moved. That’s what the human did.'},
+   {t:'Sounds good, go ahead.',g:'ok',f:'Fine, but you gave Claude no limits. The human protected their tax files first.',cr:'Got it. One check before I start: is there anything in there you don’t want moved?'},
+   {t:'Also delete any duplicates you find.',g:'risk',f:'Adding deletes widens the job and the risk. Keep the first task small.',cr:'I can look for duplicates, but deleting is permanent. Want me to list them first so you can decide?'}],
+  check:t=>has(t,/delete|duplicate/)?{g:'risk',f:'Adding deletes widens the risk. Keep the first task small.',cr:'I can, but deleting is permanent. Shall I list them first?'}:has(t,/tax|keep|leave|don.?t|do not|except|skip|not move|stay/)?{g:'good',f:'You set a limit before anything moved. Good steering.'}:{g:'ok',f:'You didn’t protect anything. The human kept tax files where they were.',cr:'Okay. Anything you’d like me to leave alone before I start?'}},
+ {k:'perm',ch:'Check',t:'Claude wants to move 198 files into 4 new folders.',real:'Show me the list first',opts:[
+   {t:'Allow always',g:'risk',f:'Claude would never ask again before moving files. Too much trust, too soon.',cr:'Okay, I won’t ask again before moving files in this session.'},
+   {t:'Show me the list first',g:'good',f:'Ten seconds of checking. Watch what it catches.'},
+   {t:'Deny',g:'ok',f:'Safe, but you lose the help. Asking to see the list is the middle path.',cr:'No problem, I won’t move anything. Want me to show you the list instead?'}]},
+ {k:'you',ch:'Check',auto:'Show me the list of files you’ll move first.'},
+ {k:'claude',ch:'Check',t:'Here’s the list. I found 3 files with “tax” in the name in it and took them out: tax-2025.pdf, tax-receipt-march.pdf, TAX_notes.docx.',fx:'flagged'},
+ {k:'wren',ch:'Check',t:'See the red outlines in your folder? Checking caught 3 tax files that would have moved.'},
+ {k:'you',ch:'Act',ask:'The list looks right. What now?',real:'Looks right. Go ahead.',opts:[
+   {t:'Looks right. Go ahead.',g:'good',f:'You checked, then gave the go-ahead. Same as the human.'},
+   {t:'Go ahead, and leave screenshots where they are too.',g:'good',f:'Also fine: one more limit, stated clearly.'}],
+  check:t=>({g:'good',f:'Claude has what it needs. Off it goes.'})},
+ {k:'tool',ch:'Act',tool:'Move files',t:'Moved 195 files into 4 folders. Nothing was deleted.',fx:'moved'},
+ {k:'claude',ch:'Act',t:'Done. Documents 58, Photos 88, Installers 23, Other 26. The 3 tax files and 16 others are still in Downloads.'},
+ {k:'wren',ch:'Undo',t:'Look at Photos. You’d rather have photos sorted by year. Can you still change your mind?'},
+ {k:'you',ch:'Undo',ask:'Say what you want instead.',real:'Actually, undo the Photos part. I want photos sorted by year.',opts:[
+   {t:'Actually, undo the Photos part. I want photos sorted by year.',g:'good',f:'Changing your mind is normal. Claude can rewind just that part.'},
+   {t:'Never mind, it’s fine.',g:'ok',f:'You can live with it, but you never have to: rewind exists for this.',cr:'Great. If you change your mind, I can undo any part of this.'}],
+  check:t=>has(t,/undo|back|rewind|revert|year/)?{g:'good',f:'Clear change of mind. Claude can rewind just that part.'}:{g:'ok',f:'Saying “undo the Photos part” tells Claude exactly what to change.',cr:'Sure. Which part would you like me to change?'}},
+ {k:'tool',ch:'Undo',tool:'Rewind',t:'Put 88 photos back where they were.',fx:'back'},
+ {k:'end',ch:'Undo'}
+];
+let pos=0,log=[],busy=false,typing=false,muted=false,timers=[],fx={},tab='coach',unseen=false,score=[];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MAP=['....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+let PC={};const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();const loadPC=()=>{PC={h:cv('--hat'),b:cv('--band'),s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:cv('--shirt'),g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'}};
+const sprite=(px)=>{let r='';MAP.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'?' class="eye"':''}/>`}));return `<svg class="sprite" width="${12*px}" height="${15*px}" viewBox="0 0 12 15" aria-label="Wren, your coach">${r}</svg>`};
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const later=(fn,ms)=>timers.push(setTimeout(fn,RM?Math.min(ms,150):ms));
+/* 48 tiles standing in for 214 files */
+const TYPES={doc:'#6f8fb8',img:'#7fae8f',ins:'#9a8bbf',oth:'#d1b26f'};
+const FILES=[];{let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;[['doc',13],['img',20],['ins',5],['oth',10]].forEach(([t,n])=>{for(let j=0;j<n;j++)FILES.push({t,tax:false,r:rnd()})});[0,4,9].forEach(j=>FILES[j].tax=true);FILES.sort((a,b)=>a.r-b.r)}
+function setFx(n){if(!n)return;fx[n]=true;if(tab!=='folder')unseen=true}
+function claudeSays(t,then){typing=true;render();later(()=>{typing=false;log.push({k:'claude',t});render();later(then,800)},1100)}
+function step(){
+ const it=S[pos];if(!it)return;
+ if(it.k==='you'&&!it.auto){busy=false;render();return}
+ if(it.k==='perm'){busy=false;log.push({k:'perm',it,pick:-1});render();return}
+ if(it.k==='end'){log.push({k:'end'});busy=false;render();return}
+ busy=true;
+ if(it.k==='claude'){claudeSays(it.t,()=>{setFx(it.fx);pos++;render();step()});return}
+ if(it.k==='tool'){log.push({k:'tool',tool:it.tool,t:it.t});setFx(it.fx);pos++;render();later(step,900);return}
+ if(it.k==='wren'){log.push({k:'wren',t:it.t});pos++;render();later(step,900);return}
+ if(it.auto){log.push({k:'you',t:it.auto});pos++;render();later(step,500);return}
+}
+function answer(text,o,real){
+ score.push(o.g);busy=true;
+ const finish=()=>{log.push({k:'fb',g:o.g,f:o.f});if(text.trim()!==real&&!(o.g==='good'&&!o.cr)){log.push({k:'rejoin',w:S[pos].k==='perm'?'chose':'wrote'});if(S[pos].k==='you')log.push({k:'ghost',t:real})}pos++;render();later(step,900)};
+ if(o.cr){render();later(()=>claudeSays(o.cr,finish),400)}else{render();later(finish,300)}
+}
+function say(text,o){log.push({k:'you',t:text});answer(text,o,S[pos].real)}
+function permPick(j){const e=log[log.length-1];e.pick=j;const o=e.it.opts[j];answer(o.t,o,e.it.real)}
+function restart(){timers.forEach(clearTimeout);timers=[];pos=0;log=[];typing=false;fx={};score=[];unseen=false;step()}
+function fbHTML(e){const lab=e.g==='good'?'Nice call':e.g==='risk'?'Careful':'Worth a rethink';return `<b>${lab}</b>${e.f}`}
+function folder(){
+ const looked=fx.looked,planned=fx.planned,flagged=fx.flagged,moved=fx.moved,back=fx.back;
+ const chip=f=>`<span class="chipf ${looked?'t-'+f.t:''} ${flagged&&f.tax?'tax':''}"></span>`;
+ const inDir=d=>FILES.filter(f=>moved&&!f.tax&&f.t===d&&!(back&&d==='img'));
+ const loose=FILES.filter(f=>!moved||f.tax||(back&&f.t==='img'));
+ const dirs=[['doc','Documents'],['img','Photos'],['ins','Installers'],['oth','Other']];
+ const status=back?'88 photos back in Downloads':moved?'195 files moved':flagged?'3 tax files flagged':planned?'4 folders planned':looked?'Claude has looked: 214 files':'214 files, not looked at yet';
+ return `<h2><span>Your folder</span><span class="upd">${status}</span></h2><div class="lbl"><span>Loose in Downloads</span></div><div class="loose">${loose.map(chip).join('')}</div>${planned?`<div class="dirs">${dirs.map(([k,n])=>{const fs=inDir(k);return `<div class="dir ${moved?'':'ghost'}"><div class="lbl"><span>${n}/</span><span>${moved?fs.length:''}</span></div><div class="cs">${fs.map(chip).join('')}</div></div>`}).join('')}</div>`:''}<div class="legend">${looked?'<span><i class="t-doc"></i>Documents</span><span><i class="t-img"></i>Photos</span><span><i class="t-ins"></i>Installers</span><span><i class="t-oth"></i>Other</span>':''}${flagged?'<span><i style="outline:2px solid #c8574f;background:var(--surface)"></i>Tax, stays put</span>':''}<span>Each tile ≈ 4 files.</span></div>`;
+}
+function render(){
+ const last=S[Math.min(pos,S.length-1)];const chi=CH.indexOf(last.ch);
+ document.getElementById('trail').innerHTML=CH.map((c,j)=>`<span class="${j<chi?'done':j===chi?'on':''}">${c}</span>`).join('');
+ let h='';
+ log.forEach((e,j)=>{const n=j===log.length-1?' new':'';
+  if(e.k==='you')h+=`<div class="who r">You</div><div class="m you${n}"><div class="av y">You</div><div class="bb">${esc(e.t)}</div></div>`;
+  else if(e.k==='ghost')h+=`<div class="m you ghost${n}"><div class="av y">You</div><div class="bb">${esc(e.t)}</div></div>`;
+  else if(e.k==='claude')h+=`<div class="who">Claude</div><div class="m claude${n}"><div class="av c">AI</div><div class="bb">${e.t}</div></div>`;
+  else if(e.k==='tool')h+=`<div class="tool${n}"><b>${e.tool}</b> · ${e.t}</div>`;
+  else if(e.k==='perm')h+=`<div class="perm${n}"><div class="t">${e.it.t}</div><div class="s">${e.pick<0?'Claude is waiting for your answer.':'You answered.'}</div><div class="bs">${e.it.opts.map((o,k)=>`<button class="pb ${e.pick===k?'chosen':''}" data-perm="${k}" ${e.pick>=0?'disabled':''}>${o.t}</button>`).join('')}</div></div>`;
+  else if(e.k==='fb')h+=`<div class="fbk ${e.g}${n}">${fbHTML(e)}</div>`;
+  else if(e.k==='rejoin')h+=`<div class="rejoin${n}">Back to the real session: here’s what the human ${e.w}</div>`;
+  else if(e.k==='end'){const good=score.filter(g=>g==='good').length;
+   h+=`<div class="notes new"><section><h2>Field notes</h2><div class="capb">You can now: hand Claude a task on your files and safely undo it.</div><ol><li>Give one clear Goal in plain words.</li><li>Let Claude look and plan before anything changes.</li><li>Protect what matters, then ask to see the list.</li><li>If you change your mind, rewind.</li></ol><div class="yours">You made ${good} of ${score.length} calls the way an experienced user would.</div><div class="stamp">Verified with Claude Code 2.1.330 · 20 Nov 2026</div></section><section><h2>Now do it for real</h2><p>Open the Claude Code Desktop app on a copy of a messy folder and paste:</p><pre id="pp">Look at this folder and suggest how to sort it into folders by type. Don’t move anything until I’ve seen the list.</pre><button class="copy" data-copy>Copy prompt</button> <span id="cpo" role="status"></span><p style="margin-top:10px;font-size:15px;color:#5b6b62">Then compare your folder with our Reference result.</p></section></div>`}
+ });
+ if(typing)h+='<div class="typing" aria-label="Claude is typing"><i></i><i></i><i></i></div>';
+ document.getElementById('log').innerHTML=h;
+ const th=document.getElementById('thread');th.scrollTop=th.scrollHeight;
+ const it=S[pos];let c='';
+ if(it&&it.k==='you'&&!it.auto&&!busy){c=`<div class="col"><div class="ask">${it.ask} <span>Pick a reply or write your own.</span></div><div class="chips">${it.opts.map((o,k)=>`<button class="chip" data-opt="${k}">${o.t}</button>`).join('')}</div><form class="box" id="form"><textarea id="ta" rows="1" placeholder="Or write your own message to Claude…" aria-label="Your message to Claude"></textarea><button class="send" id="send" disabled>Send</button></form></div>`}
+ else if(it&&it.k==='perm'&&!busy)c='<div class="col"><div class="wait">Answer Claude’s request above.</div></div>';
+ else if(it&&it.k==='end')c='<div class="col"><div class="wait">Lesson complete. Start over to try different answers.</div></div>';
+ else c='<div class="col"><div class="wait">Claude is working…</div></div>';
+ document.getElementById('comp').innerHTML=c;
+ const ta=document.getElementById('ta');if(ta){ta.addEventListener('input',()=>{document.getElementById('send').disabled=!ta.value.trim();ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px'});ta.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();document.getElementById('form').requestSubmit()}});document.getElementById('form').addEventListener('submit',ev=>{ev.preventDefault();const v=ta.value.trim();if(!v)return;say(v,S[pos].check(v))})}
+ /* side panel */
+ const ws=log.filter(e=>e.k==='wren'||e.k==='fb');const lw=ws[ws.length-1];
+ const msg=muted?'Wren is muted. Unmute to get tips again.':lw?(lw.k==='wren'?lw.t:fbHTML(lw)):'';
+ document.getElementById('coachP').innerHTML=`<h2><span>Your coach</span><button class="mute" id="mute">${muted?'Unmute':'Mute'}</button></h2><div class="coachin">${sprite(4)}<div class="cb" role="status">${msg}</div></div>`;
+ document.getElementById('folderP').innerHTML=folder();
+ const narrow=matchMedia('(max-width:860px)').matches;
+ document.getElementById('coachP').classList.toggle('off',narrow&&tab!=='coach');
+ document.getElementById('folderP').classList.toggle('off',narrow&&tab!=='folder');
+ document.getElementById('tCoach').classList.toggle('on',tab==='coach');
+ document.getElementById('tFolder').classList.toggle('on',tab==='folder');
+ document.getElementById('dotu').hidden=!(unseen&&narrow);
+}
+document.addEventListener('click',ev=>{
+ const t=ev.target.closest('button');if(!t)return;
+ if(t.id==='restart')return restart();
+ if(t.id==='mute'){muted=!muted;return render()}
+ if(t.id==='tCoach'){tab='coach';return render()}
+ if(t.id==='tFolder'){tab='folder';unseen=false;return render()}
+ if(t.dataset.opt!==undefined&&!busy){const o=S[pos].opts[+t.dataset.opt];return say(o.t,o)}
+ if(t.dataset.perm!==undefined&&!busy)return permPick(+t.dataset.perm);
+ if(t.hasAttribute('data-copy')){const out=document.getElementById('cpo');try{navigator.clipboard.writeText(document.getElementById('pp').textContent).then(()=>out.textContent='Copied.',()=>out.textContent='Select the text to copy it.')}catch(e){out.textContent='Select the text to copy it.'}}
+});
+window.addEventListener('resize',render);
+const PAL=[{id:'sage-slate',name:'Sage Slate',c:'cad2c5-84a98c-52796f-354f52-2f3e46'},{id:'fern',name:'Fern',c:'dad7cd-a3b18a-588157-3a5a40-344e41'},{id:'harbor',name:'Harbor',c:'f1faee-a8dadc-457b9d-1d3557'},{id:'mist',name:'Mist',c:'e0fbfc-c2dfe3-9db4c0-5c6b73-253237'}];
+let pal=0;
+function setPal(j,push){pal=(j+PAL.length)%PAL.length;document.documentElement.dataset.pal=PAL[pal].id;if(push){try{history.replaceState(null,'','#'+PAL[pal].id)}catch(e){}}loadPC();const sw=['--you','--claude','--hi','--bg'].map(v=>`<i style="background:${cv(v)}"></i>`).join('');document.getElementById('swl').innerHTML=`${PAL[pal].c.split('-').map(h=>`<i style="background:#${h}"></i>`).join('')} ${pal+1}/4 · ${PAL[pal].name} · <a href="https://coolors.co/palette/${PAL[pal].c}" style="color:#cfe">Coolors</a>`;render()}
+document.getElementById('swp').onclick=()=>setPal(pal-1,1);
+document.getElementById('swn').onclick=()=>setPal(pal+1,1);
+document.addEventListener('keydown',ev=>{const a=document.activeElement;if(a&&/TEXTAREA|INPUT/.test(a.tagName))return;if(ev.key==='ArrowLeft')setPal(pal-1,1);else if(ev.key==='ArrowRight')setPal(pal+1,1)});
+window.addEventListener('hashchange',()=>{const j=PAL.findIndex(p=>'#'+p.id===location.hash);if(j>=0)setPal(j)});
+{const j=PAL.findIndex(p=>'#'+p.id===location.hash);setPal(j<0?0:j)}
+step();
+}
+</script>
+</body>
+</html>

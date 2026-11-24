@@ -7,7 +7,7 @@ How the Agentcraft site is built. Decided in [Decide the technical architecture]
 One Next.js app (App Router, TypeScript strict), deployed on Vercel.
 
 ```
-app/            routes: home, track, goal, lesson, capability map, skip check
+app/            routes: home, track, goal, lesson, capability map, skip check, case study
 components/     React UI: chat, Guide panel, Worlds, field notes, design system
 engine/         replay engine: plain TypeScript, no React, no DOM
 content/        Lessons, Replay scripts, capabilities.yaml, skip-check.yaml
@@ -16,7 +16,8 @@ lib/progress/   ProgressStore interface + browser implementation
 styles/         design tokens (Sage Slate, fonts)
 tests/          Playwright end-to-end tests
 scripts/take/   take runner: records and re-takes Session replays (recording.md)
-.claude/skills/ project skills, starting with /author-replay
+.claude/        project skills, hooks and the lesson-reviewer subagent (proof-of-mastery.md)
+.github/        CI workflows, Claude lesson review, PR template
 ```
 
 ## Serving: static first

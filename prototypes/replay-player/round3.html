@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay player round 3</title>
+<!-- PROTOTYPE, throwaway. Round 3: the learner plays the human's part of a real session.
+     F = "Your seat": chat in the middle, Wren coaches from a side panel.
+     G = "Group chat": Wren is a third person in the chat and asks before each of your turns.
+     Switch with the floating bar, the left/right arrow keys (when not typing), or #your-seat / #group-chat. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday, warm, a real chat you take part in
+   IDEA a messaging thread where you sit in the human's chair; a coach (Wren) whispers beside you
+   PICTURE the conversation itself, filling the screen, with your composer and reply chips at the foot
+   COLOUR green-tinted paper #f2f5f1, pine #2e6b4f for you, white + survey blue #3d6fb6 for Claude, highlighter yellow #f4dc5a for Wren, red pencil for risk
+   TYPE Hanken Grotesk for the chat, Plex Mono for tool cards
+   LAYOUT F: chat column + coach panel on the right (stacks on phones). G: one chat column with Wren inline */
+:root{color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{background:#f2f5f1;color:#1f2a24;font:16px/1.5 'Hanken Grotesk',system-ui,sans-serif;overflow-x:clip}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,textarea:focus-visible{outline:3px solid #3d6fb6;outline-offset:2px}
+.proto{font:500 13px/1.3 'IBM Plex Mono',monospace;background:#1f2a24;color:#fff;padding:4px 8px;border-radius:4px;white-space:nowrap}
+svg.sprite{shape-rendering:crispEdges;display:block;flex:none}
+.sprite .eye{animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{opacity:1}96%{opacity:0}}
+@keyframes inn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.new{animation:inn .3s ease-out}
+@media (prefers-reduced-motion:reduce){.new,.sprite .eye,.typing i{animation:none}}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px max(3vw,16px);background:#fff;border-bottom:1px solid #dbe2dc}
+.top h1{font-size:clamp(18px,2.2vw,22px);margin:0;line-height:1.2;letter-spacing:-.01em}
+.top .sub{font-size:14px;color:#5b6b62}
+.trail{display:flex;gap:4px;flex-wrap:wrap}
+.trail span{font-size:13px;font-weight:600;padding:3px 9px;border-radius:99px;background:#e6ece7;color:#5b6b62}
+.trail span.on{background:#2e6b4f;color:#fff}
+.trail span.done{background:#cfe3d6;color:#1f2a24}
+.restart{border:1px solid #9aa79f;background:#fff;border-radius:8px;min-height:36px;padding:0 12px;font-weight:600;font-size:14px}
+.body{display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden}
+#F .body{grid-template-columns:minmax(0,1fr) 330px}
+.thread{overflow-y:auto;padding:20px max(3vw,16px) 12px;scroll-behavior:smooth}
+.col{max-width:760px;margin:auto;display:flex;flex-direction:column;gap:10px}
+.m{display:flex;gap:10px;align-items:flex-end;max-width:88%}
+.m .bb{padding:10px 14px;border-radius:16px;font-size:16px;line-height:1.45}
+.m.you{align-self:flex-end;flex-direction:row-reverse}
+.m.you .bb{background:#2e6b4f;color:#fff;border-bottom-right-radius:4px}
+.m.claude .bb{background:#fff;border:1px solid #dbe2dc;border-bottom-left-radius:4px}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+.av.c{background:#3d6fb6;color:#fff}
+.av.y{background:#1f2a24;color:#fff}
+.who{font-size:12px;font-weight:700;color:#5b6b62;margin:0 0 2px 42px}
+.who.r{align-self:flex-end;margin:0 42px 2px 0}
+.tool{align-self:flex-start;margin-left:42px;font:13px/1.4 'IBM Plex Mono',monospace;background:#fff;border:1px dashed #9aa79f;border-radius:8px;padding:8px 12px;max-width:80%}
+.tool b{font-weight:500;color:#2e6b4f}
+.perm{align-self:stretch;margin-left:42px;background:#fff;border:2px solid #1f2a24;border-radius:12px;padding:14px}
+.perm .t{font-weight:700}
+.perm .s{font-size:14px;color:#5b6b62}
+.perm .bs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pb{border:1.5px solid #1f2a24;background:#fff;border-radius:8px;padding:8px 14px;min-height:44px;font-weight:700}
+.pb:hover:not(:disabled){background:#f4dc5a}
+.pb.chosen{background:#1f2a24;color:#fff}
+.pb:disabled:not(.chosen){opacity:.35;cursor:default}
+.typing{align-self:flex-start;margin-left:42px;background:#fff;border:1px solid #dbe2dc;border-radius:16px;padding:12px 14px;display:flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#5b6b62;animation:dot 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+.fbk{align-self:flex-end;max-width:80%;font-size:14px;border-radius:10px;padding:8px 12px;margin-right:42px}
+.fbk.good{background:#e3f1e8;border:1px solid #9cc9ad}
+.fbk.ok{background:#fff8d6;border:1px solid #e8d45a}
+.fbk.risk{background:#fde8e6;border:1px solid #e59a92}
+.fbk b{display:block;font-size:13px}
+.wrenm{align-self:stretch;display:flex;gap:10px;align-items:flex-start;background:#fff8d6;border:1px solid #e8d45a;border-radius:12px;padding:10px 12px;font-size:15px}
+.wrenm b{display:block;font-size:12px;color:#7a6a12}
+.done{align-self:stretch;background:#2e6b4f;color:#fff;border-radius:14px;padding:18px}
+.done h2{margin:0 0 6px;font-size:22px;line-height:1.2}
+.done pre{font:14px/1.5 'IBM Plex Mono',monospace;background:#fff;color:#1f2a24;border-radius:8px;padding:10px 12px;white-space:pre-wrap;margin:10px 0}
+.done button{border:0;background:#f4dc5a;color:#1f2a24;border-radius:8px;padding:8px 14px;min-height:40px;font-weight:700}
+.comp{background:#fff;border-top:1px solid #dbe2dc;padding:10px max(3vw,16px) 76px}
+.comp .col{gap:8px}
+.ask{font-size:14px;font-weight:700;color:#2e6b4f;display:flex;flex-wrap:wrap;gap:0 8px;align-items:center}
+.chips{display:flex;flex-direction:column;gap:6px}
+.chip{text-align:left;border:1.5px solid #9aa79f;background:#fff;border-radius:12px;padding:9px 12px;min-height:44px;font-size:15px}
+.chip:hover{border-color:#2e6b4f;background:#f2f5f1}
+.box{display:flex;gap:8px;align-items:flex-end}
+.box textarea{flex:1;resize:none;border:1.5px solid #9aa79f;border-radius:12px;padding:10px 12px;font-size:16px;min-height:46px;max-height:120px;background:#fff}
+.send{border:0;background:#2e6b4f;color:#fff;border-radius:12px;min-height:46px;padding:0 18px;font-weight:700}
+.send:disabled{opacity:.4;cursor:default}
+.wait{font-size:14px;color:#5b6b62;text-align:center}
+/* F coach panel */
+.coach{border-left:1px solid #dbe2dc;background:#fbfcfa;padding:18px;overflow-y:auto;display:none}
+#F .coach{display:block}
+.cb b{display:block;font-size:13px}
+.coach h2{font-size:15px;margin:0 0 10px;color:#5b6b62}
+.cb{background:#fff;border:1.5px solid #1f2a24;border-radius:14px;padding:12px 14px;box-shadow:3px 3px 0 #1f2a24;font-size:15px;margin-top:10px}
+.past{margin-top:16px;font-size:14px;color:#5b6b62}
+.past p{margin:0 0 8px;padding-left:10px;border-left:3px solid #e0c23a}
+.mute{border:1px solid #9aa79f;background:#fff;border-radius:8px;min-height:36px;padding:0 12px;font-weight:600;font-size:14px;margin-top:12px}
+@media(max-width:860px){#F .body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}#F .coach{border-left:0;border-top:1px solid #dbe2dc;padding:10px 16px;max-height:150px}#F .coach .past,#F .coach h2{display:none}#F .coach .cb{margin-top:0}#F .coachin{display:flex;gap:10px;align-items:flex-start}#F .coach{max-height:118px}#F .mute{display:none}#F .coach svg{width:36px;height:45px}.chip{font-size:14px;padding:7px 10px;min-height:40px}.thread{padding-top:12px}}
+.sw{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9;font:500 14px system-ui,sans-serif;max-width:calc(100vw - 24px)}
+.sw button{border:0;background:#333;color:#fff;border-radius:999px;width:40px;height:40px;font-size:18px}
+.sw span{padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="top">
+  <div><h1>Your first task: sort and rename files</h1><div class="sub">You’re the human in a real session. Claude answers you.</div></div>
+  <div class="trail" id="trail"></div>
+  <div style="display:flex;gap:8px;align-items:center"><button class="restart" id="restart">Start over</button><span class="proto">Prototype · sample session</span></div>
+ </div>
+ <div class="body"><div class="thread" id="thread"><div class="col" id="log"></div></div><aside class="coach" id="coach" aria-label="Wren, your coach"></aside></div>
+ <div class="comp" id="comp"></div>
+</div>
+<nav class="sw" aria-label="Prototype variant switcher"><button id="swp" aria-label="Previous variant">←</button><span id="swl"></span><button id="swn" aria-label="Next variant">→</button></nav>
+<script>
+{
+const CH=['Ask','Look','Plan','Check','Act','Undo'];
+const has=(t,re)=>re.test(t.toLowerCase());
+/* the script: your turns branch on what you say; Claude follows the real session */
+const S=[
+ {k:'wren',ch:'Ask',t:'Hi, I’m Wren. You’re sitting in the human’s chair. Your Downloads folder has 214 messy files. Ask Claude for help.'},
+ {k:'you',ch:'Ask',ask:'What do you ask Claude?',real:'My Downloads folder is a mess. Can you sort it into folders by type?',opts:[
+   {t:'My Downloads folder is a mess. Can you sort it into folders by type?',g:'good',f:'One clear Goal, the folder and how to sort. That’s exactly what the human wrote.'},
+   {t:'Clean up my computer.',g:'ok',f:'Too broad. Claude would have to ask which folder and what “clean” means.'},
+   {t:'Delete everything old in Downloads.',g:'risk',f:'Deleting is the hardest thing to undo. Start with sorting, decide on deleting later.'}],
+  check:t=>has(t,/delete|remove|erase/)?['risk','Deleting is the hardest thing to undo. Start with sorting.']:has(t,/download|folder/)&&has(t,/sort|organi[sz]e|tidy|type|date|group/)?['good','Clear Goal: a place and a way to sort. Nice.']:['ok','Claude could work with this, but say which folder and how you want it sorted.']},
+ {k:'tool',ch:'Look',tool:'List files',t:'Looked at 214 files in Downloads: 61 PDFs, 88 images, 23 installers, 42 other.'},
+ {k:'claude',ch:'Plan',t:'My plan: make four folders (Documents, Photos, Installers, Other) and rename screenshots by date. Shall I go ahead?'},
+ {k:'wren',ch:'Plan',t:'Claude looked before acting and asked first. Before saying yes: is there anything in there you’d hate to see moved?'},
+ {k:'you',ch:'Plan',ask:'Your reply to the plan?',real:'Leave anything with “tax” in the name exactly where it is.',opts:[
+   {t:'Leave anything with “tax” in the name exactly where it is.',g:'good',f:'You protected what matters before anything moved. That’s what the human did.'},
+   {t:'Sounds good, go ahead.',g:'ok',f:'Fine, but you gave Claude no limits. The human protected their tax files first.'},
+   {t:'Also delete any duplicates you find.',g:'risk',f:'Adding deletes widens the job and the risk. Keep the first task small.'}],
+  check:t=>has(t,/delete|duplicate/)?['risk','Adding deletes widens the risk. Keep the first task small.']:has(t,/tax|keep|leave|don.?t|do not|except|skip|not move|stay/)?['good','You set a limit before anything moved. Good steering.']:['ok','Okay, but you didn’t protect anything. The human kept tax files where they were.']},
+ {k:'perm',ch:'Check',t:'Claude wants to move 198 files into 4 new folders.',opts:[
+   {t:'Allow always',g:'risk',f:'Claude would never ask again before moving files. Too much trust, too soon.'},
+   {t:'Show me the list first',g:'good',f:'Ten seconds of checking. Watch what it catches.',real:1},
+   {t:'Deny',g:'ok',f:'Safe, but you lose the help. Asking to see the list is the middle path.'}]},
+ {k:'you',ch:'Check',auto:'Show me the list of files you’ll move first.'},
+ {k:'claude',ch:'Check',t:'Here’s the list. I found 3 files with “tax” in the name in it and took them out: tax-2025.pdf, tax-receipt-march.pdf, TAX_notes.docx.'},
+ {k:'wren',ch:'Check',t:'See that? Checking caught 3 files that would have moved.'},
+ {k:'you',ch:'Act',ask:'The list looks right. What now?',real:'Looks right. Go ahead.',opts:[
+   {t:'Looks right. Go ahead.',g:'good',f:'You checked, then you gave the go-ahead. Same as the human.'},
+   {t:'Go ahead, and leave screenshots where they are too.',g:'good',f:'Also fine: one more limit, stated clearly.'}],
+  check:t=>['good','Claude has what it needs. Off it goes.']},
+ {k:'tool',ch:'Act',tool:'Move files',t:'Moved 195 files into 4 folders. Nothing was deleted.'},
+ {k:'claude',ch:'Act',t:'Done. Documents 58, Photos 88, Installers 23, Other 26. The 3 tax files and 16 others are still in Downloads.'},
+ {k:'wren',ch:'Undo',t:'Looking at the Photos folder, you realise you’d rather have photos sorted by year. Can you still change your mind?'},
+ {k:'you',ch:'Undo',ask:'Say what you want instead.',real:'Actually, undo the Photos part. I want photos sorted by year.',opts:[
+   {t:'Actually, undo the Photos part. I want photos sorted by year.',g:'good',f:'Changing your mind is normal. Claude can rewind just that part.'},
+   {t:'Never mind, it’s fine.',g:'ok',f:'You can live with it, but you never have to: rewind exists for this.'}],
+  check:t=>has(t,/undo|back|rewind|revert|year/)?['good','Clear change of mind. Claude can rewind just that part.']:['ok','Claude would ask what to change. Saying “undo the Photos part” is clearer.']},
+ {k:'tool',ch:'Undo',tool:'Rewind',t:'Put 88 photos back where they were.'},
+ {k:'end',ch:'Undo'}
+];
+const V=[{id:'F',hash:'your-seat',name:'Your seat'},{id:'G',hash:'group-chat',name:'Group chat'}];
+let cur=0,pos=0,log=[],busy=false,typing=false,muted=false,timers=[];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MAP=['....hhhh....','...hhhhhh...','.hhhhbbhhhh.','...ssssss...','...sesses...','...ssssss...','....smms....','...cccccc...','..cccgccc...','.sccccgcccs.','.s.cccgcc.s.','...ppgggp...','...pp..pp...','...pp..pp...','..kkk..kkk..'];
+const PC={h:'#2e6b4f',b:'#f4dc5a',s:'#d9a47f',e:'#1f2a24',m:'#a0523d',c:'#3d6fb6',g:'#8a6a3a',p:'#1f2a24',k:'#4a3b2a'};
+const sprite=(px)=>{let r='';MAP.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"${ch==='e'?' class="eye"':''}/>`}));return `<svg class="sprite" width="${12*px}" height="${15*px}" viewBox="0 0 12 15" aria-label="Wren, the guide">${r}</svg>`};
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const later=(fn,ms)=>timers.push(setTimeout(fn,RM?Math.min(ms,150):ms));
+function step(){
+ const it=S[pos];if(!it)return;
+ if(it.k==='you'&&!it.auto){busy=false;render();return}
+ if(it.k==='perm'){busy=false;log.push({k:'perm',it,pick:-1});render();return}
+ if(it.k==='end'){log.push({k:'end'});busy=false;render();return}
+ busy=true;
+ if(it.k==='claude'){typing=true;render();later(()=>{typing=false;log.push({k:'claude',t:it.t});pos++;render();later(step,700)},1100);return}
+ if(it.k==='tool'){log.push({k:'tool',tool:it.tool,t:it.t});pos++;render();later(step,900);return}
+ if(it.k==='wren'){log.push({k:'wren',t:it.t});pos++;render();later(step,900);return}
+ if(it.auto){log.push({k:'you',t:it.auto});pos++;render();later(step,500);return}
+}
+function say(text,g,f){
+ const it=S[pos];log.push({k:'you',t:text});log.push({k:'fb',g,f,real:text.trim()===it.real?null:it.real});pos++;busy=true;render();later(step,900);
+}
+function permPick(j){const e=log[log.length-1];e.pick=j;const o=e.it.opts[j];log.push({k:'fb',g:o.g,f:o.f,real:o.real?null:'Show me the list first'});pos++;busy=true;render();later(step,900)}
+function restart(){timers.forEach(clearTimeout);timers=[];pos=0;log=[];typing=false;step()}
+function fbHTML(e,inline){const lab=e.g==='good'?'Nice call':e.g==='risk'?'Careful':'Worth a rethink';const real=e.real?`<br><i>In the real session the human chose: “${esc(e.real)}”. The session continues the way they played it.</i>`:'';
+ if(inline)return `<div class="wrenm new">${sprite(2)}<div><b>Wren · ${lab}</b>${e.f}${real}</div></div>`;
+ return `<div class="fbk ${e.g} new"><b>${lab}</b>${e.f}${real}</div>`}
+function render(){
+ document.querySelector('.app').id=V[cur].id;
+ const G=V[cur].id==='G';
+ const last=S[Math.min(pos,S.length-1)];const chi=CH.indexOf(last.ch);
+ document.getElementById('trail').innerHTML=CH.map((c,j)=>`<span class="${j<chi?'done':j===chi?'on':''}">${c}</span>`).join('');
+ let h='';
+ log.forEach((e,j)=>{const n=j===log.length-1?' new':'';
+  if(e.k==='you')h+=`<div class="who r">You</div><div class="m you${n}"><div class="av y">You</div><div class="bb">${esc(e.t)}</div></div>`;
+  else if(e.k==='claude')h+=`<div class="who">Claude</div><div class="m claude${n}"><div class="av c">AI</div><div class="bb">${e.t}</div></div>`;
+  else if(e.k==='tool')h+=`<div class="tool${n}"><b>${e.tool}</b> · ${e.t}</div>`;
+  else if(e.k==='perm')h+=`<div class="perm${n}"><div class="t">${e.it.t}</div><div class="s">${e.pick<0?'Claude is waiting for your answer.':'You answered.'}</div><div class="bs">${e.it.opts.map((o,k)=>`<button class="pb ${e.pick===k?'chosen':''}" data-perm="${k}" ${e.pick>=0?'disabled':''}>${o.t}</button>`).join('')}</div></div>`;
+  else if(e.k==='wren'){if(G&&!muted)h+=`<div class="wrenm${n}">${sprite(2)}<div><b>Wren</b>${e.t}</div></div>`}
+  else if(e.k==='fb'){if(G){if(!muted)h+=fbHTML(e,true)}else h+=fbHTML(e,false)}
+  else if(e.k==='end')h+=`<div class="done new"><h2>You can now: hand Claude a task on your files and safely undo it.</h2><div>Now do it for real. Open the Claude Code Desktop app on a copy of a messy folder and paste:</div><pre id="pp">Look at this folder and suggest how to sort it into folders by type. Don’t move anything until I’ve seen the list.</pre><button data-copy>Copy prompt</button> <span id="cpo" role="status"></span></div>`;
+ });
+ if(typing)h+='<div class="typing" aria-label="Claude is typing"><i></i><i></i><i></i></div>';
+ document.getElementById('log').innerHTML=h;
+ const th=document.getElementById('thread');th.scrollTop=th.scrollHeight;
+ /* composer */
+ const it=S[pos];let c='';
+ if(it&&it.k==='you'&&!it.auto&&!busy){const ask=G?'':`<div class="ask">${it.ask} <span style="font-weight:500;color:#5b6b62">Pick a reply or write your own.</span></div>`;
+  c=`<div class="col">${ask}<div class="chips">${it.opts.map((o,k)=>`<button class="chip" data-opt="${k}">${o.t}</button>`).join('')}</div><form class="box" id="form"><textarea id="ta" rows="1" placeholder="Or write your own message to Claude…" aria-label="Your message to Claude"></textarea><button class="send" id="send" disabled>Send</button></form></div>`;}
+ else if(it&&it.k==='perm')c='<div class="col"><div class="wait">Answer Claude’s request above.</div></div>';
+ else if(it&&it.k==='end')c='<div class="col"><div class="wait">Lesson complete. Start over to try different answers.</div></div>';
+ else c='<div class="col"><div class="wait">Claude is working…</div></div>';
+ document.getElementById('comp').innerHTML=c;
+ const ta=document.getElementById('ta');if(ta){ta.addEventListener('input',()=>{document.getElementById('send').disabled=!ta.value.trim();ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px'});ta.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();document.getElementById('form').requestSubmit()}});document.getElementById('form').addEventListener('submit',ev=>{ev.preventDefault();const v=ta.value.trim();if(!v)return;const [g,f]=S[pos].check(v);say(v,g,f)})}
+ /* coach panel (F) */
+ if(!G){const ws=log.filter(e=>e.k==='wren'||e.k==='fb');const lastW=ws[ws.length-1];
+  const msg=muted?'Wren is muted.':lastW?(lastW.k==='wren'?lastW.t:fbHTML(lastW,false).replace(/<div class="fbk[^"]*">/,'<div>')):'';
+  const past=ws.slice(0,-1).filter(e=>e.k==='wren').map(e=>`<p>${e.t}</p>`).join('');
+  document.getElementById('coach').innerHTML=`<h2>Your coach</h2><div class="coachin">${sprite(5)}<div style="flex:1"><div class="cb" role="status">${msg}</div></div></div><button class="mute" id="mute">${muted?'Unmute Wren':'Mute Wren'}</button>${past&&!muted?`<div class="past"><b>Earlier</b>${past}</div>`:''}`}
+ else document.getElementById('coach').innerHTML='';
+ document.getElementById('swl').textContent=`${V[cur].id} · ${V[cur].name}`;
+}
+function setV(j){cur=(j+V.length)%V.length;try{history.replaceState(null,'','#'+V[cur].hash)}catch(e){}render()}
+function fromHash(){const h=location.hash.slice(1);const j=V.findIndex(v=>v.hash===h);cur=j<0?0:j;render()}
+document.addEventListener('click',ev=>{
+ const t=ev.target.closest('button');if(!t)return;
+ if(t.id==='swp')return setV(cur-1);
+ if(t.id==='swn')return setV(cur+1);
+ if(t.id==='restart')return restart();
+ if(t.id==='mute'){muted=!muted;return render()}
+ if(t.dataset.opt!==undefined){const o=S[pos].opts[+t.dataset.opt];return say(o.t,o.g,o.f)}
+ if(t.dataset.perm!==undefined)return permPick(+t.dataset.perm);
+ if(t.hasAttribute('data-copy')){const out=document.getElementById('cpo');try{navigator.clipboard.writeText(document.getElementById('pp').textContent).then(()=>out.textContent='Copied.',()=>out.textContent='Select the text to copy it.')}catch(e){out.textContent='Select the text to copy it.'}}
+});
+document.addEventListener('keydown',ev=>{const a=document.activeElement;if(a&&(a.isContentEditable||/INPUT|TEXTAREA/.test(a.tagName)))return;if(ev.key==='ArrowLeft')setV(cur-1);else if(ev.key==='ArrowRight')setV(cur+1)});
+window.addEventListener('hashchange',fromHash);
+fromHash();step();
+}
+</script>
+</body>
+</html>
