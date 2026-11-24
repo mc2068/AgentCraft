@@ -45,7 +45,7 @@ Top level:
 | Step | Fields | What happens |
 |---|---|---|
 | `guide` | text | The Guide (Wren) speaks in the side panel |
-| `you` | `ask`, `real`, `options`, `typed`, `fallback` | The Learner's turn (a Decision pause) |
+| `you` | `ask`, `real`, `options`, `typed`, `fallback` | The Learner's turn (a Decision pause). Or just `auto`: a scripted human message the Learner doesn't choose |
 | `claude` | text | Claude replies, with a typing indicator |
 | `tool` | `name`, `text` | Claude uses a tool; shown as a tool card |
 | `permission` | `text`, `real`, `options` | Claude asks permission; the Learner answers (a Decision pause) |
