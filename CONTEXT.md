@@ -57,7 +57,7 @@ The Claude Code surface a Lesson is taught in (Desktop app or Terminal). Each Tr
 _Avoid_: Setup, surface, platform (on the site)
 
 **Mode**:
-Reserved for Claude Code's own modes (plan mode, permission modes). Never used for parts of Agentcraft.
+Reserved for Claude Code's own modes (plan mode, permission modes). Never used for parts of Agentcraft, with one exception: Calm mode.
 
 ## Learning experiences
 
@@ -134,3 +134,9 @@ _Avoid_: Last updated, version badge
 **Case study**:
 The site page that tells how Agentcraft was built with Claude Code, including one Session replay from the build. Aimed at people judging the owner's work, not at Learners.
 _Avoid_: About page, portfolio page, blog post
+
+## Site settings
+
+**Calm mode**:
+The site-wide setting in the header that makes all motion instant or a short fade, turns off the Player's typing delay and holds the homepage island still. On by default when the system asks for reduced motion.
+_Avoid_: Reduced motion mode, accessibility mode, low-motion setting

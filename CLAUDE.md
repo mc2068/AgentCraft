@@ -13,3 +13,7 @@ The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready
 ### Domain docs
 
 Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Pull requests
+
+Write every PR body with the `/mattpocock-skills:pr` template (Summary, Evidence, Merge Danger). See `docs/agents/pull-requests.md`. Do not add a "Generated with Claude Code" line to PR bodies.
