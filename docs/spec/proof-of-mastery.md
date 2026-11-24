@@ -24,6 +24,7 @@ Nothing goes in the repo just to show a feature. Each item below exists because 
 | Subagent | `.claude/agents/lesson-reviewer.md` | Read-only reviewer: plain words, the calm mentor tone, brand rules (no Anthropic logos, colours or Claude likeness), and Claude Code facts checked against the Lesson's `docs` links |
 | MCP | `scripts/take/permission-tool.ts` | The take runner's permission tool is an MCP tool (`--permission-prompt-tool`) |
 | GitHub Actions + Claude | `.github/workflows/lesson-review.yml` | Claude reviews every pull request that touches `content/`, using the lesson reviewer's rules, and comments on it |
+| GitHub Actions + Claude | `.github/workflows/retake.yml` | Re-takes a Lesson the weekly Freshness check flagged, when the owner labels its issue `retake`, and opens a draft pull request ([freshness.md](freshness.md)) |
 
 The Action runs with a token from the owner's own Claude plan, stored as a repository secret.
 
