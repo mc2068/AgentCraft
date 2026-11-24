@@ -14,6 +14,7 @@ content/
       02-sort-and-rename/      # one folder per Lesson, numbered for order
         lesson.mdx             # frontmatter + short text around the replay
         replay.yaml            # the Replay script
+        take/                  # the Take behind it; see recording.md (ignored by the loader)
   advanced/
     ...
 ```
@@ -29,7 +30,7 @@ content/
 | `lens` | `desktop` \| `terminal` | One Lens per Track in v1 (ADR 0002) |
 | `capability` | string | Id from `capabilities.yaml` |
 | `minutes` | number | Estimated time |
-| `verified` | `{ version, date }` | The Verification stamp |
+| `verified` | `{ version, date }` | The Verification stamp; written by the take runner, not by hand ([recording.md](recording.md)) |
 | `docs` | URL list | Claude Code docs pages this Lesson depends on; used to flag stale Lessons |
 | `status` | `draft` \| `published` | Drafts are not built into the site |
 
@@ -93,4 +94,4 @@ New Worlds are added only when a Goal needs one.
 
 ## Validation
 
-All content files are validated against a schema at build time. A missing Capability id, an unknown World state, a `you` step without `real`, or an option without `grade` fails the build.
+All content files are validated against a schema at build time. A missing Capability id, an unknown World state, a `you` step without `real`, or an option without `grade` fails the build. So does any text that matches a secret pattern (see [recording.md](recording.md#cleaning)).

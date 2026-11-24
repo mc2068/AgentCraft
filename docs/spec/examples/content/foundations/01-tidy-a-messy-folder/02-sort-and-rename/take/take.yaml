@@ -1,0 +1,16 @@
+# Sample take file: the owner's inputs for this Lesson's Take (matches ../replay.yaml).
+# The take runner fills this in during `take record` and plays it again on `take redo`.
+shown_as: ~/Downloads
+setup:
+  model: default
+  permission_mode: default        # what a new Learner with the desktop Lens starts in
+
+turns:
+  - say: My Downloads folder is a mess. Can you sort it into folders by type?
+  - say: Leave anything with "tax" in the name exactly where it is.
+    answers:
+      - deny: Show me the list of files you'll move first.   # "No, and tell Claude what to do instead"
+  - say: Looks right. Go ahead.
+    answers: [allow]
+  - say: Actually, undo the Photos part. I want photos sorted by year.
+    answers: [allow]

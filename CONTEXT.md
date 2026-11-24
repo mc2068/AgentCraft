@@ -73,6 +73,18 @@ _Avoid_: Wrong answer, branch
 The authored file behind a Session replay: the ordered steps, the Learner's options and typed-reply rules, Claude's replies, Guide lines and World states.
 _Avoid_: Transcript, script file, scenario
 
+**Take**:
+One recording of a real Claude Code session for a Lesson, made with the take runner on the Lesson's Starting folder. A Replay script is authored from its Take.
+_Avoid_: Recording session, capture, transcript
+
+**Starting folder**:
+The fake files a Take begins from, kept in the repo so every Take and Re-take starts the same way.
+_Avoid_: Fixture, sample data, sandbox
+
+**Re-take**:
+Playing a Take's human messages again with the current Claude Code to bring a Lesson up to date.
+_Avoid_: Re-record, refresh, sync
+
 **World**:
 The kind of thing a Live view shows changing (v1: folder, spreadsheet, document, web page). A Replay script names World states; the World draws them.
 _Avoid_: Sandbox, environment, simulation

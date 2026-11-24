@@ -15,6 +15,8 @@ lib/content/    content loader + schemas
 lib/progress/   ProgressStore interface + browser implementation
 styles/         design tokens (Sage Slate, fonts)
 tests/          Playwright end-to-end tests
+scripts/take/   take runner: records and re-takes Session replays (recording.md)
+.claude/skills/ project skills, starting with /author-replay
 ```
 
 ## Serving: static first
